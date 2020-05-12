@@ -111,67 +111,44 @@ static inline unsigned my_clz(unsigned c)
     return i;
 }
 
-static inline
+
 void hist_skip_front_avx_step(const Datapoint *vector, size_t &num_datapoints,
                               qint64 min_key, size_t &vec_i)
 {
-    //Q_ASSERT(num_datapoints < 1LL<<30);
+    Q_ASSERT(static_cast<size_t>(static_cast<int>(num_datapoints)) == num_datapoints);
 
     // search from v[vec_i] using indexes starting from 0
     vector = &vector[vec_i];
 
     // load 4 subarray offsets into xveci
-    int num_one = num_datapoints / 4;
-    __m128i xveci = _mm_set_epi32(0, num_one, num_one*2, num_one*3);
-
-    // step = num_datapoints >> 1;
-    int step_one = num_one / 2;
-    __m128i xstep = _mm_set1_epi32(step_one);
+    size_t num_one = num_datapoints / 3;
 
     // tmp_i = vec_i + step;
-    __m128i xtmpi = _mm_add_epi32(xveci, xstep);
+    __m128i xtmpi = _mm_set_epi32(0, 0, static_cast<int>(num_one), static_cast<int>(num_one*2));
 
-    // return vector[tmp_i].key < min_key;
-    __m256i xmins = _mm256_set1_epi64x(min_key);
-    __m128i xoffs = _mm_slli_epi32(xtmpi, 1); // sizeof(vector[0]) == 2 * 8 (use scale 8 for gather)
-    __m256i xkeys = _mm256_i32gather_epi64(reinterpret_cast<const long long *>(vector), xoffs, 8);
-    __m256i xcmpg = _mm256_cmpgt_epi64(xkeys, xmins);
+    // sizeof(vector[0]) == 2 * 8 (use scale 8 for gather)
+    __m128i xkeys = _mm_i32gather_epi64(reinterpret_cast<const long long *>(vector),
+                                        _mm_slli_epi32(xtmpi, 1), 8);
+    __m128i xcmpg = _mm_cmpgt_epi64(xkeys, _mm_set1_epi64x(min_key));
 
     // each 2 bits in mask = (key > min) for each point in xveci
     // return a) the first index where key > min
     //        b) the last index (all keys were < min)
-    unsigned mask = _mm256_movemask_epi8(xcmpg);
-    if (mask != 0) {
-        int which = __builtin_clz(mask) >> 3;
-        // v[xtmpi[which]] > min
-        if (which == 0) {
-            // search v[0] .. v[xtmpi[0]]
-            num_datapoints = step_one;
-        } else {
-            // v[xtmpi[which-1]] < min
-            // search v[xtmpi[which-1]+1] .. v[xtmpi[which]]
-            //size_t step = num_one * (which - 1) + step_one;
-            size_t step;
-            switch(which) {
-            case 3: step = _mm_extract_epi32(xtmpi, 1); break;
-            case 2: step = _mm_extract_epi32(xtmpi, 2); break;
-            case 1: step = _mm_extract_epi32(xtmpi, 3); break;
-            }
-            //step = num_one * (which - 1) + step_one;
-            vec_i += step + 1;
-            if (which < 3) {
-                num_datapoints = num_one;
-            } else {
-                num_datapoints -= step + 1;
-            }
-        }
-    } else {
-        // v[xtmpi[3]] < min
-        // search v[xtmpi[3]+1] .. v[num_datapoint-1]
-       // size_t step = num_one * 3 + step_one;
-        size_t step = _mm_extract_epi32(xtmpi, 0);
+    unsigned mask = static_cast<unsigned>(_mm_movemask_epi8(xcmpg));
+    size_t step;
+    switch (mask) {
+    case 0x0000:
+        step = num_one*2;
         vec_i += step + 1;
         num_datapoints -= step + 1;
+        break;
+    case 0xFFFF:
+        num_datapoints = num_one;
+        break;
+    case 0x00FF:
+        vec_i += num_one + 1;
+        num_datapoints = num_one;
+        break;
     }
 }
 
@@ -194,7 +171,7 @@ static inline size_t hist_skip_front_avx(const Datapoint *vector, size_t num_dat
             num_datapoints = step;
         }
     }
-    while (num_datapoints >= 4) {
+    while (num_datapoints >= 3) {
         hist_skip_front_avx_step(vector, num_datapoints, min_key, vec_i);
     }
     return vec_i + hist_skip_front_single(&vector[vec_i], num_datapoints, min_key+1, 0);

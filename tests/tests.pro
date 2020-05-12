@@ -9,4 +9,4 @@ INCLUDEPATH += ../src
 SOURCES +=  tst_histogram_test.cpp \
     ../src/platform.cpp
 
-QMAKE_CXXFLAGS += -mavx2
+QMAKE_CXXFLAGS += -mavx2 -O0

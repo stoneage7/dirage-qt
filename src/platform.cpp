@@ -111,10 +111,11 @@ static inline unsigned my_clz(unsigned c)
     return i;
 }
 
+static inline
 void hist_skip_front_avx_step(const Datapoint *vector, size_t &num_datapoints,
                               qint64 min_key, size_t &vec_i)
 {
-    Q_ASSERT(num_datapoints < 1LL<<30);
+    //Q_ASSERT(num_datapoints < 1LL<<30);
 
     // search from v[vec_i] using indexes starting from 0
     vector = &vector[vec_i];
@@ -141,7 +142,7 @@ void hist_skip_front_avx_step(const Datapoint *vector, size_t &num_datapoints,
     //        b) the last index (all keys were < min)
     unsigned mask = _mm256_movemask_epi8(xcmpg);
     if (mask != 0) {
-        int which = my_clz(mask) >> 3;
+        int which = __builtin_clz(mask) >> 3;
         // v[xtmpi[which]] > min
         if (which == 0) {
             // search v[0] .. v[xtmpi[0]]
@@ -149,14 +150,26 @@ void hist_skip_front_avx_step(const Datapoint *vector, size_t &num_datapoints,
         } else {
             // v[xtmpi[which-1]] < min
             // search v[xtmpi[which-1]+1] .. v[xtmpi[which]]
-            size_t step = num_one * (which - 1) + step_one;
+            //size_t step = num_one * (which - 1) + step_one;
+            size_t step;
+            switch(which) {
+            case 3: step = _mm_extract_epi32(xtmpi, 1); break;
+            case 2: step = _mm_extract_epi32(xtmpi, 2); break;
+            case 1: step = _mm_extract_epi32(xtmpi, 3); break;
+            }
+            //step = num_one * (which - 1) + step_one;
             vec_i += step + 1;
-            num_datapoints = num_one;
+            if (which < 3) {
+                num_datapoints = num_one;
+            } else {
+                num_datapoints -= step + 1;
+            }
         }
     } else {
         // v[xtmpi[3]] < min
         // search v[xtmpi[3]+1] .. v[num_datapoint-1]
-        size_t step = num_one * 3 + step_one;
+       // size_t step = num_one * 3 + step_one;
+        size_t step = _mm_extract_epi32(xtmpi, 0);
         vec_i += step + 1;
         num_datapoints -= step + 1;
     }
@@ -181,10 +194,10 @@ static inline size_t hist_skip_front_avx(const Datapoint *vector, size_t num_dat
             num_datapoints = step;
         }
     }
-    while (num_datapoints > 4) {
+    while (num_datapoints >= 4) {
         hist_skip_front_avx_step(vector, num_datapoints, min_key, vec_i);
     }
-    return hist_skip_front_single(vector, num_datapoints, min_key, 0);
+    return vec_i + hist_skip_front_single(&vector[vec_i], num_datapoints, min_key+1, 0);
 }
 #endif
 
@@ -205,7 +218,7 @@ static inline size_t hist_skip_front(const Datapoint *vector, size_t num_datapoi
 }
 
 
-
+#include <QDebug>
 qint64 make_histogram(const Datapoint *vector, size_t num_datapoints, qint64 min_key, qint64 max_key,
                       qint64 *bins, size_t num_bins, bool avx)
 {
@@ -219,6 +232,7 @@ qint64 make_histogram(const Datapoint *vector, size_t num_datapoints, qint64 min
 
     size_t vec_i = 0;
     vec_i = hist_skip_front(vector, num_datapoints, min_key, avx);
+    //qInfo() << "avx:" << avx << "vec_i" << vec_i;
 
     qint64 current_min_key = min_key;
     qint64 biggest_bin_size = 0;

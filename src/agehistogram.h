@@ -41,7 +41,6 @@ public:
     bool isFinalized() const { return m_medianTimestamp.isValid(); }
     qint64 totalSize() const { return m_totalSize; }
     const DatapointContainer &datapoints() const { return m_vec; }
-    bool isEmpty() const { return m_vec.isEmpty(); }
     qint64 minTimestamp() const { return m_vec.at(0).timestamp; }
     qint64 maxTimestamp() const { return m_vec.at(m_vec.length()-1).timestamp; }
     TimestampOption medianTimestamp() const { return m_medianTimestamp; }
@@ -53,8 +52,6 @@ struct AgeHistogram
 private:
     QVector<qint64> m_bins;
     TimestampOption m_medianTimestamp;
-    TimestampOption m_minTimestamp;
-    TimestampOption m_maxTimestamp;
     qint64 m_maxBucketSize;
 
 public:
@@ -64,9 +61,9 @@ public:
     QString toString() const;
     const QVector<qint64> &bins() const { return m_bins; }
     qint64 maxBinSize() const { return m_maxBucketSize; }
-    TimestampOption minTimestamp() const { return m_minTimestamp; }
-    TimestampOption maxTimestamp() const { return m_maxTimestamp; }
     TimestampOption medianTimestamp() const { return m_medianTimestamp; }
+    qint64 largestBinSize() const;
+    qint64 largestBinSize(int fromIndex, int toIndex) const;
 };
 Q_DECLARE_METATYPE(AgeHistogram);
 

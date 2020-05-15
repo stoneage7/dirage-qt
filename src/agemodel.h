@@ -10,39 +10,23 @@ struct AgeModelRow {
     AgeVector vector;
     AgeHistogram histogram;
 };
-
-struct AgeModelGlobalState {
-    int numBuckets;
-    TimestampOption minModelTimestamp;
-    TimestampOption maxModelTimestamp;
-    int pan;
-    int zoom;
-    TimestampOption minZoomTimestamp;
-    TimestampOption maxZoomTimestamp;
-    qint64 maxBinSize;
-    AgeModelGlobalState(): numBuckets(0), pan(50),  zoom(50), maxBinSize(0) { }
-};
-
-// returned by AgeModel::data(). AgeItemDelegate uses this to draw the chart with correct size.
-struct AgeRenderData {
-    AgeModelRow row;
-    AgeModelGlobalState global;
-};
-Q_DECLARE_METATYPE(AgeRenderData);
+Q_DECLARE_METATYPE(AgeModelRow);
 
 class AgeModel : public QAbstractTableModel
 {
     Q_OBJECT
+
 public:
     AgeModel(QObject *parent);
 
 private:
     QVector<AgeModelRow> m_rows;
-    AgeModelGlobalState m_global;
+    int m_numBins;
+    TimestampOption m_minModelTimestamp;
+    TimestampOption m_maxModelTimestamp;
 
-    void applyPanAndZoom();
     void checkExpandMinMaxTimestamps(qint64 new_min_ts, qint64 new_max_ts);
-    void checkRefreshRowHeights(qint64 new_max_size);
+    AgeHistogram makeHistogram(const AgeVector &vector);
     void rebuildHistograms();
 
 public:
@@ -50,6 +34,7 @@ public:
     virtual int columnCount(const QModelIndex &parent = QModelIndex()) const;
     virtual QVariant data(const QModelIndex &index, int role = Qt::DisplayRole) const;
     virtual QVariant headerData(int section, Qt::Orientation orientation, int role) const;
+    qint64 largestBinSize(int fromIndex, int toIndex) const;
 
 signals:
     void minMaxTimestampChanged(qint64 min_ts, qint64 max_ts);
@@ -57,8 +42,6 @@ signals:
 public slots:
     void insertOrChangeAge(QString name, AgeVector vector);
     void clear();
-    void changePan(int new_pan);
-    void changeZoom(int new_zoom);
 };
 
 #endif // AGEMODEL_H

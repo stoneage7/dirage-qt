@@ -19,8 +19,6 @@ DirAge::DirAge(QWidget *parent)
     connect(&m_ageModel, &AgeModel::minMaxTimestampChanged, this, &DirAge::updateMinMaxTimestamp);
     connect(ui->upDirButton, &QPushButton::clicked, this, &DirAge::upDir);
     ui->currentDirLabel->clear();
-    connect(ui->panSlider, &QSlider::valueChanged, &m_ageModel, &AgeModel::changePan);
-    connect(ui->zoomSlider, &QSlider::valueChanged, &m_ageModel, &AgeModel::changeZoom);
     ui->minTimestampLabel->setText(QStringLiteral());
     ui->maxTimestampLabel->setText(QStringLiteral());
     this->changeScanButtonState(DirAge::ScanButtonOpen);

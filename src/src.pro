@@ -19,6 +19,7 @@ SOURCES += \
     agehistogram.cpp \
     ageitemdelegate.cpp \
     agemodel.cpp \
+    agetableview.cpp \
     main.cpp \
     dirage.cpp \
     platform.cpp \
@@ -28,6 +29,7 @@ HEADERS += \
     agehistogram.h \
     ageitemdelegate.h \
     agemodel.h \
+    agetableview.h \
     dirage.h \
     platform.h \
     scanner.h

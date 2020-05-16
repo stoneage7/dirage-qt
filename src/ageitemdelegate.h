@@ -1,17 +1,31 @@
 #ifndef AGEITEMDELEGATE_H
 #define AGEITEMDELEGATE_H
 
+#include <QtCore>
 #include <QAbstractItemDelegate>
-#include <QStaticText>
+#include "agemodel.h"
 
 class AgeItemDelegate : public QAbstractItemDelegate
 {
     Q_OBJECT
+
+private:
+    int m_numVisibleBins;
+    int m_firstVisibleBin;
+    qint64 m_largestBinInView;
+
 public:
     AgeItemDelegate(QObject *parent);
-    static int calculateRowHeight(qint64 maxGlobalBucketSize, qint64 maxBucketSize);
     virtual void paint(QPainter *painter, const QStyleOptionViewItem &option, const QModelIndex &index) const;
     virtual QSize sizeHint(const QStyleOptionViewItem &option, const QModelIndex &index) const;
+
+    int numVisibleBins() const { return m_numVisibleBins; }
+    int firstVisibleBin() const { return m_firstVisibleBin; }
+
+public slots:
+    void updateLargestBinInView(const AgeModel *model);
+    void setNumVisibleBins(int newNum, const AgeModel *model);
+    void setFirstVisibleBin(int newFirst, const AgeModel *model);
 };
 
 #endif // AGEITEMDELEGATE_H

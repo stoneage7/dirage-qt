@@ -22,7 +22,6 @@ public:
 private:
     Ui::DirAge *ui;
     AgeModel m_ageModel;
-    AgeItemDelegate m_ageItemDelegate;
     SubdirsScanner *m_scanner;
     QScopedPointer<QTimer> m_scannerPing;
     QScopedPointer<QDir> m_path;

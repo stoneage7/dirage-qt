@@ -19,6 +19,7 @@ SOURCES += \
     agehistogram.cpp \
     ageitemdelegate.cpp \
     agemodel.cpp \
+    agetableview.cpp \
     main.cpp \
     dirage.cpp \
     platform.cpp \
@@ -28,6 +29,7 @@ HEADERS += \
     agehistogram.h \
     ageitemdelegate.h \
     agemodel.h \
+    agetableview.h \
     dirage.h \
     platform.h \
     scanner.h
@@ -35,7 +37,7 @@ HEADERS += \
 FORMS += \
     dirage.ui
 
-QMAKE_CXXFLAGS += -mavx2 -O3 -march=native
+#QMAKE_CXXFLAGS += -mavx2 -O3 -march=native
 
 # Default rules for deployment.
 qnx: target.path = /tmp/$${TARGET}/bin

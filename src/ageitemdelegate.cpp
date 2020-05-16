@@ -3,13 +3,14 @@
 #include "ageitemdelegate.h"
 
 const int DEFAULT_CHART_WIDTH = 500;
-const int LARGEST_BUCKET_SIZE_PX = 100;
+const int LARGEST_BIN_HEIGHT_PX = 100;
 const int DEFAULT_NUM_VISIBLE_BINS = 50;
 
 AgeItemDelegate::AgeItemDelegate(QObject *parent)
    :QAbstractItemDelegate(parent)
    ,m_numVisibleBins(DEFAULT_NUM_VISIBLE_BINS)
    ,m_firstVisibleBin(0)
+   ,m_largestBinInView(0)
 {
 
 }
@@ -32,17 +33,17 @@ AgeItemDelegate::paint(QPainter *painter, const QStyleOptionViewItem &option, co
         if (j >= bins.length()) {
             break;
         }
-        int remainingBins = m_numVisibleBins;
+        int remainingBins = m_numVisibleBins - i;
         int barWidth = remainingLength / remainingBins;
-        int bar_height = 0;
+        int barHeight = 0;
         if (m_largestBinInView > 0) {
-            bar_height = static_cast<int>(bins.at(j) * maxHeight / m_largestBinInView);
-            if (bins.at(j) > 0 && bar_height == 0) {
-                bar_height = 1;
+            barHeight = static_cast<int>(bins.at(j) * maxHeight / m_largestBinInView);
+            if (bins.at(j) > 0 && barHeight == 0) {
+                barHeight = 1;
             }
         }
-        painter->fillRect(nextX, (option.rect.height() - bar_height) / 2,
-                          barWidth, bar_height, QBrush(Qt::blue));
+        painter->fillRect(nextX, (option.rect.height() - barHeight) / 2,
+                          barWidth, barHeight, QBrush(Qt::blue));
         nextX += barWidth;
         remainingLength -= barWidth;
     }
@@ -53,7 +54,7 @@ QSize AgeItemDelegate::sizeHint(const QStyleOptionViewItem &option, const QModel
 {
     Q_UNUSED(option)
     Q_UNUSED(index)
-    return QSize(DEFAULT_CHART_WIDTH, LARGEST_BUCKET_SIZE_PX);
+    return QSize(DEFAULT_CHART_WIDTH, LARGEST_BIN_HEIGHT_PX);
 }
 
 

@@ -7,15 +7,11 @@ DirAge::DirAge(QWidget *parent)
     :QMainWindow(parent)
     ,ui(new Ui::DirAge)
     ,m_ageModel(this)
-    ,m_ageItemDelegate(new AgeItemDelegate(this))
     ,m_scanner(nullptr)
     ,m_path(nullptr)
 {
     ui->setupUi(this);
     ui->statsTable->setModel(&m_ageModel);
-    ui->statsTable->setItemDelegateForColumn(1, &m_ageItemDelegate);
-    ui->statsTable->horizontalHeader()->setSectionResizeMode(1, QHeaderView::Stretch);
-    ui->statsTable->verticalHeader()->setSectionResizeMode(QHeaderView::ResizeToContents);
     ui->statsTable->connectScollBar(ui->ageScrollBar);
     ui->statsTable->connectZoomSlider(ui->zoomSlider);
     connect(ui->numBinsSlider, &QAbstractSlider::valueChanged, &m_ageModel, &AgeModel::setNumBins);

@@ -16,7 +16,7 @@ public:
     AgeTableView(QWidget *parent = nullptr);
     virtual ~AgeTableView() { }
     void connectScollBar(QScrollBar *sb);
-    void connectZoomSlider(QAbstractSlider *zoomSlider);
+    void connectZoomSlider(QSlider *zoomSlider);
 
 signals:
     void setScrollMax(int newMax);

@@ -51,7 +51,8 @@ qint64 AgeHistogram::largestBinSize() const
 
 qint64 AgeHistogram::largestBinSize(int fromIndex, int toIndex) const
 {
-    Q_ASSERT(fromIndex >= 0 && toIndex >= 0 && fromIndex < m_bins.length() && toIndex <= fromIndex);
+    Q_ASSERT(fromIndex >= 0 && toIndex >= 0 &&
+             fromIndex < m_bins.length() && toIndex < m_bins.length());
     qint64 largestBin = 0;
     for (int i = fromIndex; i <= toIndex; ++i) {
         if (largestBin < m_bins.at(i)) {

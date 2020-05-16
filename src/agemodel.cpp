@@ -1,6 +1,5 @@
 #include "agemodel.h"
 #include <QDir>
-#include <QDebug>
 
 const int NUM_BUCKETS_DEFAULT = 50;
 
@@ -27,11 +26,6 @@ void AgeModel::checkExpandMinMaxTimestamps(qint64 newMinTs, qint64 newMaxTs)
         emit dataChanged(this->createIndex(0, COLUMN_AGE),
                          this->createIndex(this->rowCount()-1, COLUMN_AGE));
     }
-}
-
-void AgeModel::chackUpdateChartHeights(const AgeHistogram &beingAdded)
-{
-
 }
 
 AgeHistogram AgeModel::makeHistogram(const AgeVector &vector)
@@ -91,10 +85,13 @@ QVariant AgeModel::headerData(int section, Qt::Orientation orientation, int role
 
 qint64 AgeModel::largestBinSize(int fromIndex, int toIndex) const
 {
+    Q_ASSERT(fromIndex >= 0 && toIndex >= 0);
     qint64 largestBin = 0;
     for (auto i = m_rows.cbegin(); i != m_rows.cend(); ++i) {
         auto &bins = (*i).histogram.bins();
-        if (fromIndex > 0 && fromIndex < bins.length() && toIndex > 0 && toIndex < fromIndex) {
+        if (bins.length() > 0) {
+            fromIndex = qMin(fromIndex, bins.length()-1);
+            toIndex = qMin(toIndex, bins.length()-1);
             qint64 j = (*i).histogram.largestBinSize(fromIndex, toIndex);
             if (largestBin < j) {
                 largestBin = j;

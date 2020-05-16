@@ -31,7 +31,6 @@ private:
     TimestampOption m_maxModelTimestamp;
 
     void checkExpandMinMaxTimestamps(qint64 newMinTs, qint64 newMaxTs);
-    void chackUpdateChartHeights(const AgeHistogram &beingAdded);
     AgeHistogram makeHistogram(const AgeVector &vector);
     void rebuildHistograms();
 

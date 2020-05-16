@@ -1,5 +1,6 @@
 #include "agetableview.h"
 #include <QScrollBar>
+#include <QHeaderView>
 
 const int DEFAULT_VISIBLE_BINS = 50;
 const int MIN_VISIBLE_BINS = 5;
@@ -13,22 +14,34 @@ AgeTableView::AgeTableView(QWidget *parent)
 
 void AgeTableView::connectScollBar(QScrollBar *sb)
 {
-    sb->setMinimum(0);
-    connect(this, &AgeTableView::setScrollMax, sb, &QScrollBar::setMaximum);
-    connect(sb, &QScrollBar::valueChanged, this, &AgeTableView::histogramScroll);
+    AgeModel *am = qobject_cast<AgeModel*>(this->model());
+    if (am != nullptr) {
+        m_histogramDelegate.updateLargestBinInView(am);
+        sb->setRange(0, am->numBins());
+        connect(this, &AgeTableView::setScrollMax, sb, &QScrollBar::setMaximum);
+        connect(sb, &QScrollBar::valueChanged, this, &AgeTableView::histogramScroll);
+    }
 }
 
-void AgeTableView::connectZoomSlider(QAbstractSlider *zoomSlider)
+void AgeTableView::connectZoomSlider(QSlider *zoomSlider)
 {
-    zoomSlider->setRange(MIN_VISIBLE_BINS, DEFAULT_VISIBLE_BINS);
-    connect(zoomSlider, &QAbstractSlider::valueChanged, this, &AgeTableView::histogramZoom);
-    connect(this, &AgeTableView::setZoomRange, zoomSlider, &QAbstractSlider::setRange);
+    AgeModel *am = qobject_cast<AgeModel*>(this->model());
+    if (am != nullptr) {
+        zoomSlider->setRange(MIN_VISIBLE_BINS, DEFAULT_VISIBLE_BINS);
+        connect(zoomSlider, &QSlider::valueChanged, this, &AgeTableView::histogramZoom);
+        connect(this, &AgeTableView::setZoomRange, zoomSlider, &QAbstractSlider::setRange);
+    }
 }
 
 void AgeTableView::numBinsChanged(int newNumBins)
 {
     emit setScrollMax(newNumBins - 1);
     emit setZoomRange(MIN_VISIBLE_BINS, newNumBins);
+    AgeModel *am = qobject_cast<AgeModel*>(this->model());
+    if (am != nullptr) {
+        m_histogramDelegate.updateLargestBinInView(am);
+    }
+    this->viewport()->update();
 }
 
 void AgeTableView::histogramScroll(int newScrollValue)
@@ -37,6 +50,7 @@ void AgeTableView::histogramScroll(int newScrollValue)
     if (am != nullptr && newScrollValue < am->numBins()) {
         m_histogramDelegate.setFirstVisibleBin(newScrollValue, am);
     }
+    this->viewport()->update();
 }
 
 void AgeTableView::histogramZoom(int newZoomValue)
@@ -45,15 +59,19 @@ void AgeTableView::histogramZoom(int newZoomValue)
     if (am != nullptr && newZoomValue < am->numBins()) {
         m_histogramDelegate.setNumVisibleBins(newZoomValue, am);
     }
+    this->viewport()->update();
 }
 
 void AgeTableView::setModel(QAbstractItemModel *model)
 {
+    QTableView::setModel(model);
     AgeModel *am = qobject_cast<AgeModel*>(model);
     if (am != nullptr) {
         connect(am, &AgeModel::numBinsChanged, this, &AgeTableView::numBinsChanged);
+        this->setItemDelegateForColumn(am->COLUMN_AGE, &m_histogramDelegate);
     }
-    QTableView::setModel(model);
+    this->horizontalHeader()->setSectionResizeMode(1, QHeaderView::Stretch);
+    this->verticalHeader()->setSectionResizeMode(QHeaderView::ResizeToContents);
 }
 
 

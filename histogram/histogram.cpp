@@ -1,58 +1,70 @@
 
 #include "histogram.h"
-//#include <iterator>
 
 namespace histogram {
 
-inline void
-Vector::lowerBoundStep(Vector::ContainerIter &begin, size_t &length, Datapoint::KeyType minKey)
+Impl::~Impl() {  }
+
+void
+ScalarImpl::lowerBoundStep(VecIter &begin, int64_t &length, Datapoint::KeyType minKey)
 {
-    size_t step = length >> 1;
-    Vector::ContainerIter tmp = begin;
+    auto step = length >> 1;
+    auto tmp = begin;
     std::advance(tmp, step);
     if (tmp->key < minKey) {
         begin = tmp + 1;
         length -= step + 1;
     } else {
-        length -= step;
+        length = step;
     }
 }
 
-void Vector::finalize()
+void
+ScalarImpl::lowerBound(VecIter begin, VecIter end, Datapoint::KeyType minKey)
 {
-    std::sort(m_vec.begin(), m_vec.end(),
-              [] (const Datapoint &a, const Datapoint &b) { return a.key < b.key; });
-    m_isFinalized = true;
-}
-
-Vector::ContainerIter Vector::lowerBound(Datapoint::KeyType minKey) const
-{
-    size_t length = m_vec.size();
-    ContainerIter begin = m_vec.cbegin();
+    int64_t length = std::distance(begin, end);
     while (length > 0) {
-        Vector::lowerBoundStep(begin, length, minKey);
+        ScalarImpl::lowerBoundStep(begin, length, minKey);
     }
-    return begin;
 }
 
-Histogram::Histogram(const Vector &vector, Datapoint::KeyType minKey, Datapoint::KeyType maxKey,
-                     uint32_t numBins)
-    :m_bins(numBins, 0)
+Datapoint::ValueType
+ScalarImpl::accumulateBin(ScalarImpl::VecIter begin, ScalarImpl::VecIter end,
+                          Datapoint::KeyType binMaxKey)
+{
+    Datapoint::ValueType binSize = 0;
+    while (begin < end && (*begin).value <= binMaxKey) {
+        binSize += (*begin).value;
+        begin++;
+    }
+    return binSize;
+}
+
+void
+ScalarImpl::makeImpl(VecIter begin, VecIter end,
+               Datapoint::KeyType minKey, Datapoint::KeyType maxKey,
+               BinIter binBegin, BinIter binEnd)
+{
+    Datapoint::KeyType currentMinKey = minKey;
+    auto numBins = binEnd - binBegin;
+    for (int bin_i = 0; bin_i < numBins; ++bin_i) {
+        long remainingBins = numBins - bin_i;
+        Datapoint::KeyType binMaxKey =
+                currentMinKey + ((maxKey - currentMinKey)  / (remainingBins));
+        *(binBegin + bin_i) = ScalarImpl::accumulateBin(begin, end, binMaxKey);
+    }
+}
+
+void ScalarImpl::make(ScalarImpl::VecIter begin, ScalarImpl::VecIter end,
+                      Datapoint::KeyType minKey, Datapoint::KeyType maxKey,
+                      ScalarImpl::BinIter binBegin, ScalarImpl::BinIter binEnd)
 {
     Q_ASSERT(maxKey >= minKey);
-    Vector::ContainerIter begin = vector.lowerBound(minKey);
-    Datapoint::KeyType currentMinKey = minKey;
-    for (size_t bin_i = 0; bin_i < numBins; ++bin_i) {
-        size_t remainingBins = numBins - bin_i;
-        Datapoint::KeyType binMaxKey =
-                currentMinKey + ((maxKey - currentMinKey)  / static_cast<int64_t>(remainingBins));
-        Datapoint::ValueType binSize = 0;
-        while (begin < vector.end() && (*begin).value <= binMaxKey) {
-            binSize += (*begin).value;
-            begin++;
-        }
-    }
-
+    ScalarImpl::lowerBound(begin, end, minKey);
+    ScalarImpl::makeImpl(begin, end, minKey, maxKey, binBegin, binEnd);
 }
+
+ScalarImpl::~ScalarImpl() { }
+
 
 } // namespace histogram

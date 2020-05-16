@@ -25,6 +25,9 @@ AgeHistogram::AgeHistogram(const AgeVector &vector, int num_buckets,
 {
     m_medianTimestamp = vector.medianTimestamp();
 
+    auto impl = new histogram::ScalarImpl();
+    impl->make(vector.datapoints().cbegin(), vector.datapoints().cend(),
+                                  min_timestamp, max_timestamp, m_bins.begin(), m_bins.end());
 
    // platform::make_histogram(reinterpret_cast<const platform::Datapoint *>(vector.datapoints().begin()),
    //                          static_cast<size_t>(vector.datapoints().length()),

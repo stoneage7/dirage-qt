@@ -12,39 +12,33 @@ struct Datapoint {
     ValueType value;
 };
 
-class Vector {
+class Impl {
 public:
-    typedef std::vector<Datapoint> Container;
-    typedef Container::const_iterator ContainerIter;
-
-protected:
-    Container m_vec;
-    bool m_isFinalized;
-    static void lowerBoundStep(ContainerIter &begin, size_t &length, Datapoint::KeyType minKey);
-
-public:
-    Vector(): m_isFinalized(false) { }
-    void finalize();
-    inline Container::const_iterator begin() const { return m_vec.cbegin(); }
-    inline Container::const_iterator end() const { return m_vec.end(); }
-    inline Container::size_type size() { return m_vec.size(); }
-    ContainerIter lowerBound(Datapoint::KeyType minKey) const;
+    typedef QVector<Datapoint>::const_iterator VecIter;
+    typedef QVector<Datapoint::ValueType>::iterator BinIter;
+    virtual void make(VecIter begin, VecIter end,
+                      Datapoint::KeyType minKey, Datapoint::KeyType maxKey,
+                      BinIter binBegin, BinIter binEnd) = 0;
+    virtual ~Impl();
 };
 
-class Histogram {
+class ScalarImpl : public Impl {
 protected:
-    typedef std::vector<Datapoint::KeyType> BinsContainer;
-    //typedef QVector<Datapoint>::const_iterator VecIter;
-
-    static Datapoint::ValueType accumulateBin(Vector::ContainerIter &iter,
-                                              Vector::ContainerIter end,
+    static void lowerBoundStep(Impl::VecIter &begin, int64_t &length, Datapoint::KeyType minKey);
+    static void lowerBound(VecIter begin, VecIter end, Datapoint::KeyType minKey);
+    static Datapoint::ValueType accumulateBin(VecIter begin, VecIter end,
                                               Datapoint::KeyType binMaxKey);
-
-    BinsContainer m_bins;
+    static void makeImpl(VecIter begin, VecIter end,
+                          Datapoint::KeyType minKey, Datapoint::KeyType maxKey,
+                          BinIter binBegin, BinIter binEnd);
 
 public:
-    Histogram(const Vector &vector, Datapoint::KeyType minKey, Datapoint::KeyType maxKey,
-              uint32_t numBins);
+    virtual void make(VecIter begin, VecIter end,
+                      Datapoint::KeyType minKey, Datapoint::KeyType maxKey,
+                      BinIter binBegin, BinIter binEnd) override;
+    virtual ~ScalarImpl() override;
+
+protected:
 };
 
 }

@@ -2,6 +2,8 @@
 #define PLATFORM_H
 
 #include <QtCore>
+#include "histogram.h"
+#include "histogram_avx.h"
 
 // define private struct
 #ifdef Q_OS_LINUX
@@ -155,14 +157,10 @@ inline bool FileInfo::crossesMountpointFrom(FileInfo &other)
 #endif // #ifdef Q_OS_LINUX
 
 namespace platform {
-typedef struct { qint64 key; qint64 value; } Datapoint;
 
-// makes histogram - vector has to be already sorted by key
-qint64 make_histogram(const Datapoint *vector, size_t num_datapoints,
-                      qint64 min_key, qint64 max_key,
-                      qint64 *bins, size_t num_bins, bool avx);
-}
-// histogram function
-//void histogram();
+extern histogram::Impl *histogramImpl;
+void initHistogramImpl();
+
+} // namespace platform
 
 #endif // PLATFORM_H

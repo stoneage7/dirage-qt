@@ -37,7 +37,7 @@ HEADERS += \
 FORMS += \
     dirage.ui
 
-QMAKE_CXXFLAGS += -mavx2 -O3 -march=native
+#QMAKE_CXXFLAGS += -mavx2 -O3 -march=native
 
 # Default rules for deployment.
 qnx: target.path = /tmp/$${TARGET}/bin

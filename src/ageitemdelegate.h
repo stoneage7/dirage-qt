@@ -23,7 +23,8 @@ public:
     int firstVisibleBin() const { return m_firstVisibleBin; }
 
 public slots:
-    void setNumVisibleBins(int newNum);
+    void updateLargestBinInView(const AgeModel *model);
+    void setNumVisibleBins(int newNum, const AgeModel *model);
     void setFirstVisibleBin(int newFirst, const AgeModel *model);
 };
 

@@ -52,15 +52,13 @@ struct AgeHistogram
 private:
     QVector<qint64> m_bins;
     TimestampOption m_medianTimestamp;
-    qint64 m_maxBucketSize;
 
 public:
-    AgeHistogram(): m_maxBucketSize(0) { }
+    AgeHistogram() = default;
     AgeHistogram(const AgeHistogram &other) = default;
     AgeHistogram(const AgeVector &vector, int num_buckets, qint64 min_timestamp, qint64 max_timestamp);
     QString toString() const;
     const QVector<qint64> &bins() const { return m_bins; }
-    qint64 maxBinSize() const { return m_maxBucketSize; }
     TimestampOption medianTimestamp() const { return m_medianTimestamp; }
     qint64 largestBinSize() const;
     qint64 largestBinSize(int fromIndex, int toIndex) const;

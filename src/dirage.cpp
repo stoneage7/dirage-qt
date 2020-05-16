@@ -16,6 +16,9 @@ DirAge::DirAge(QWidget *parent)
     ui->statsTable->setItemDelegateForColumn(1, &m_ageItemDelegate);
     ui->statsTable->horizontalHeader()->setSectionResizeMode(1, QHeaderView::Stretch);
     ui->statsTable->verticalHeader()->setSectionResizeMode(QHeaderView::ResizeToContents);
+    ui->statsTable->connectScollBar(ui->ageScrollBar);
+    ui->statsTable->connectZoomSlider(ui->zoomSlider);
+    connect(ui->numBinsSlider, &QAbstractSlider::valueChanged, &m_ageModel, &AgeModel::setNumBins);
     connect(&m_ageModel, &AgeModel::minMaxTimestampChanged, this, &DirAge::updateMinMaxTimestamp);
     connect(ui->upDirButton, &QPushButton::clicked, this, &DirAge::upDir);
     ui->currentDirLabel->clear();

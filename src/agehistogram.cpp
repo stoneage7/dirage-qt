@@ -20,8 +20,7 @@ void AgeVector::finalize()
 
 AgeHistogram::AgeHistogram(const AgeVector &vector, int num_buckets,
                            qint64 min_timestamp, qint64 max_timestamp):
-    m_bins(num_buckets),
-    m_maxBucketSize(0)
+    m_bins(num_buckets)
 {
     static_assert((sizeof(AgeDatapoint) == sizeof(platform::Datapoint)) &&
                   (offsetof(AgeDatapoint, timestamp) == offsetof(platform::Datapoint, key)) &&

@@ -19,6 +19,9 @@ AgeItemDelegate::paint(QPainter *painter, const QStyleOptionViewItem &option, co
 {
     AgeModelRow value = index.data().value<AgeModelRow>();
     const QVector<qint64> &bins = value.histogram.bins();
+    if (bins.length() == 0) {
+        return;
+    }
     painter->save();
     painter->translate(option.rect.x(), option.rect.y());
     int remainingLength = option.rect.width();
@@ -53,14 +56,23 @@ QSize AgeItemDelegate::sizeHint(const QStyleOptionViewItem &option, const QModel
     return QSize(DEFAULT_CHART_WIDTH, LARGEST_BUCKET_SIZE_PX);
 }
 
-void AgeItemDelegate::setNumVisibleBins(int newNum)
+
+void AgeItemDelegate::updateLargestBinInView(const AgeModel *model)
+{
+    if (model != nullptr) {
+        m_largestBinInView = model->largestBinSize(m_firstVisibleBin,
+                                                   m_firstVisibleBin + m_numVisibleBins - 1);
+    }
+}
+
+void AgeItemDelegate::setNumVisibleBins(int newNum, const AgeModel *model)
 {
     m_numVisibleBins = newNum;
+    this->updateLargestBinInView(model);
 }
 
 void AgeItemDelegate::setFirstVisibleBin(int newFirst, const AgeModel *model)
 {
     m_firstVisibleBin = newFirst;
-    m_largestBinInView = model->largestBinSize(m_firstVisibleBin,
-                                               m_firstVisibleBin + m_numVisibleBins - 1);
+    this->updateLargestBinInView(model);
 }

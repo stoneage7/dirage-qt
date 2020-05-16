@@ -10,21 +10,28 @@ AgeModel::AgeModel(QObject *parent)
 {
 }
 
-void AgeModel::checkExpandMinMaxTimestamps(qint64 new_min_ts, qint64 new_max_ts)
+void AgeModel::checkExpandMinMaxTimestamps(qint64 newMinTs, qint64 newMaxTs)
 {
     bool changed = false;
-    if (!m_minModelTimestamp.isValid() || m_minModelTimestamp.get() > new_min_ts) {
-        m_minModelTimestamp.set(new_min_ts);
+    if (!m_minModelTimestamp.isValid() || m_minModelTimestamp.get() > newMinTs) {
+        m_minModelTimestamp.set(newMinTs);
         changed = true;
     }
-    if (!m_maxModelTimestamp.isValid() || m_maxModelTimestamp.get() < new_max_ts) {
-        m_maxModelTimestamp.set(new_max_ts);
+    if (!m_maxModelTimestamp.isValid() || m_maxModelTimestamp.get() < newMaxTs) {
+        m_maxModelTimestamp.set(newMaxTs);
         changed = true;
     }
     if (changed) {
         this->rebuildHistograms();
         emit minMaxTimestampChanged(m_minModelTimestamp.get(), m_maxModelTimestamp.get());
+        emit dataChanged(this->createIndex(0, COLUMN_AGE),
+                         this->createIndex(this->rowCount()-1, COLUMN_AGE));
     }
+}
+
+void AgeModel::chackUpdateChartHeights(const AgeHistogram &beingAdded)
+{
+
 }
 
 AgeHistogram AgeModel::makeHistogram(const AgeVector &vector)
@@ -42,7 +49,6 @@ void AgeModel::rebuildHistograms()
     for (auto i = m_rows.begin(); i != m_rows.end(); ++i) {
         (*i).histogram = this->makeHistogram((*i).vector);
     }
-    emit dataChanged(QModelIndex(), QModelIndex());
 }
 
 int AgeModel::rowCount(const QModelIndex &parent) const
@@ -62,7 +68,7 @@ QVariant AgeModel::data(const QModelIndex &index, int role) const
         case 0:
             return QVariant(m_rows.at(index.row()).label);
         case 1:
-            return QVariant::fromValue(index.row());
+            return QVariant::fromValue(m_rows.at(index.row()));
         }
     }
     return QVariant();
@@ -73,9 +79,9 @@ QVariant AgeModel::headerData(int section, Qt::Orientation orientation, int role
     if (orientation == Qt::Horizontal) {
         if (role == Qt::DisplayRole) {
             switch (section) {
-            case 0:
+            case COLUMN_NAME:
                 return "Name";
-            case 1:
+            case COLUMN_AGE:
                 return "Age";
             }
         }
@@ -87,9 +93,12 @@ qint64 AgeModel::largestBinSize(int fromIndex, int toIndex) const
 {
     qint64 largestBin = 0;
     for (auto i = m_rows.cbegin(); i != m_rows.cend(); ++i) {
-        qint64 j = (*i).histogram.largestBigSize(fromIndex, toIndex);
-        if (largestBin < j) {
-            largestBin = j;
+        auto &bins = (*i).histogram.bins();
+        if (fromIndex > 0 && fromIndex < bins.length() && toIndex > 0 && toIndex < fromIndex) {
+            qint64 j = (*i).histogram.largestBinSize(fromIndex, toIndex);
+            if (largestBin < j) {
+                largestBin = j;
+            }
         }
     }
     return largestBin;
@@ -109,6 +118,16 @@ void AgeModel::insertOrChangeAge(QString name, AgeVector vector)
     this->beginInsertRows(QModelIndex(), m_rows.count(), m_rows.count());
     m_rows.append(it);
     this->endInsertRows();
+}
+
+void AgeModel::setNumBins(int newNumBins)
+{
+    newNumBins = qMax(newNumBins, 1);
+    m_numBins = newNumBins;
+    this->rebuildHistograms();
+    emit numBinsChanged(newNumBins);
+    emit dataChanged(this->createIndex(0, COLUMN_AGE),
+                     this->createIndex(this->rowCount()-1, COLUMN_AGE));
 }
 
 void AgeModel::clear()

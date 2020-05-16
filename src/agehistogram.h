@@ -2,14 +2,7 @@
 #define AGEHISTOGRAM_H
 
 #include <QtCore>
-
-struct AgeDatapoint
-{
-    qint64 timestamp;
-    qint64 size;
-    AgeDatapoint(): timestamp(0), size(0) { }
-};
-Q_DECLARE_METATYPE(AgeDatapoint);
+#include "histogram.h"
 
 // optional timestamp
 class TimestampOption {
@@ -27,7 +20,7 @@ public:
 
 class AgeVector
 {
-    typedef QVector<AgeDatapoint> DatapointContainer;
+    typedef QVector<histogram::Datapoint> DatapointContainer;
 
 private:
     DatapointContainer m_vec;
@@ -36,13 +29,13 @@ private:
 
 public:
     AgeVector(): m_totalSize(0) { }
-    void append(const AgeDatapoint &point) { m_vec.append(point); m_totalSize += point.size; }
+    void append(const histogram::Datapoint &point) { m_vec.append(point); m_totalSize += point.value; }
     void finalize();
     bool isFinalized() const { return m_medianTimestamp.isValid(); }
     qint64 totalSize() const { return m_totalSize; }
     const DatapointContainer &datapoints() const { return m_vec; }
-    qint64 minTimestamp() const { return m_vec.at(0).timestamp; }
-    qint64 maxTimestamp() const { return m_vec.at(m_vec.length()-1).timestamp; }
+    qint64 minTimestamp() const { return m_vec.at(0).key; }
+    qint64 maxTimestamp() const { return m_vec.at(m_vec.length()-1).key; }
     TimestampOption medianTimestamp() const { return m_medianTimestamp; }
 };
 Q_DECLARE_METATYPE(AgeVector);

@@ -89,11 +89,11 @@ void SubdirsScanner::run()
     qInfo() << "scan finished";
 }
 
-void SubdirsScanner::processFile(AgeVector &vector, qint64 size, qint64 timestamp)
+inline void SubdirsScanner::processFile(AgeVector &vector, qint64 size, qint64 timestamp)
 {
-    AgeDatapoint dp;
-    dp.size = size;
-    dp.timestamp = timestamp;
+    histogram::Datapoint dp;
+    dp.key = timestamp;
+    dp.value = size;
     vector.append(dp);
 }
 

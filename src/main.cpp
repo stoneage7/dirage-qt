@@ -9,7 +9,6 @@ int main(int argc, char *argv[])
     DirAge w;
 
     qRegisterMetaType<AgeVector>();
-    qRegisterMetaType<AgeDatapoint>();
     w.show();
     return a.exec();
 }

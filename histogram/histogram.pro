@@ -1,6 +1,7 @@
-QT       += core gui
+QT -= gui
 
-greaterThan(QT_MAJOR_VERSION, 4): QT += widgets
+TEMPLATE = lib
+CONFIG += staticlib
 
 CONFIG += c++11
 
@@ -15,37 +16,16 @@ DEFINES += QT_DEPRECATED_WARNINGS
 # You can also select to disable deprecated APIs only up to a certain version of Qt.
 #DEFINES += QT_DISABLE_DEPRECATED_BEFORE=0x060000    # disables all the APIs deprecated before Qt 6.0.0
 
-INCLUDEPATH += \
-    ../histogram
-
 SOURCES += \
-    agehistogram.cpp \
-    ageitemdelegate.cpp \
-    agemodel.cpp \
-    agetableview.cpp \
-    main.cpp \
-    dirage.cpp \
-    platform.cpp \
-    scanner.cpp
+    histogram.cpp
 
 HEADERS += \
-    agehistogram.h \
-    ageitemdelegate.h \
-    agemodel.h \
-    agetableview.h \
-    dirage.h \
-    platform.h \
-    scanner.h
-
-FORMS += \
-    dirage.ui
-
-#QMAKE_CXXFLAGS += -mavx2 -O3 -march=native
+    histogram.h
 
 # Default rules for deployment.
-qnx: target.path = /tmp/$${TARGET}/bin
-else: unix:!android: target.path = /opt/$${TARGET}/bin
+unix {
+    target.path = $$[QT_INSTALL_PLUGINS]/generic
+}
 !isEmpty(target.path): INSTALLS += target
 
-DISTFILES += \
-    TODO
+QMAKE_CXXFLAGS += -O3

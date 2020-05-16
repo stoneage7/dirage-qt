@@ -195,7 +195,6 @@ static inline size_t hist_skip_front(const Datapoint *vector, size_t num_datapoi
 }
 
 
-#include <QDebug>
 qint64 make_histogram(const Datapoint *vector, size_t num_datapoints, qint64 min_key, qint64 max_key,
                       qint64 *bins, size_t num_bins, bool avx)
 {
@@ -209,7 +208,6 @@ qint64 make_histogram(const Datapoint *vector, size_t num_datapoints, qint64 min
 
     size_t vec_i = 0;
     vec_i = hist_skip_front(vector, num_datapoints, min_key, avx);
-    //qInfo() << "avx:" << avx << "vec_i" << vec_i;
 
     qint64 current_min_key = min_key;
     qint64 biggest_bin_size = 0;

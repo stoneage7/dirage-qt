@@ -47,11 +47,13 @@ ScalarImpl::makeImpl(VecIter begin, VecIter end,
 {
     Datapoint::KeyType currentMinKey = minKey;
     auto numBins = binEnd - binBegin;
+    //Datapoint::KeyType range = maxKey - minKey;
     for (int bin_i = 0; bin_i < numBins; ++bin_i) {
         long remainingBins = numBins - bin_i;
         Datapoint::KeyType binMaxKey =
                 currentMinKey + ((maxKey - currentMinKey)  / (remainingBins));
         *(binBegin + bin_i) = ScalarImpl::accumulateBin(begin, end, binMaxKey);
+        currentMinKey = binMaxKey;
     }
 }
 

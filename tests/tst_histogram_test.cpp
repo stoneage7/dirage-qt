@@ -36,8 +36,8 @@ histogram_test::~histogram_test()
 void histogram_test::test_case1()
 {
     for (size_t i = 0; i < 100; i++) {
-        int n_data = m_rng() % 100000 + 10;
-        int n_bins = m_rng() % 100 + 10;
+        int n_data = m_rng() % 100 + 10;
+        int n_bins = m_rng() % 10 + 10;
         QVector<histogram::Datapoint> data(n_data);
         QVector<histogram::Datapoint::ValueType> bins_scalar(n_bins);
         QVector<histogram::Datapoint::ValueType> bins_avx(n_bins);
@@ -71,7 +71,7 @@ void histogram_test::test_case2()
     m_rng.seed(m_benchSeed);
     for (size_t i = 0; i < 10; i++) {
         int n_data = m_rng() % 1000000 + 10;
-        int n_bins = m_rng() % 100 + 10;
+        int n_bins = m_rng() % 50 + 10;
         QVector<histogram::Datapoint> data(n_data);
         QVector<histogram::Datapoint::ValueType> bins(n_bins);
 
@@ -102,7 +102,7 @@ void histogram_test::test_case3()
     m_rng.seed(m_benchSeed);
     for (size_t i = 0; i < 10; i++) {
         int n_data = m_rng() % 1000000 + 10;
-        int n_bins = m_rng() % 100 + 10;
+        int n_bins = m_rng() % 50 + 10;
         QVector<histogram::Datapoint> data(n_data);
         QVector<histogram::Datapoint::ValueType> bins(n_bins);
 

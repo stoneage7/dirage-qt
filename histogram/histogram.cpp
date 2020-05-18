@@ -1,6 +1,8 @@
 
 #include "histogram.h"
 
+#include <QtDebug>
+
 namespace histogram {
 
 Impl::~Impl() {  }
@@ -29,11 +31,11 @@ ScalarImpl::lowerBound(VecIter begin, VecIter end, Datapoint::KeyType minKey)
 }
 
 Datapoint::ValueType
-ScalarImpl::accumulateBin(ScalarImpl::VecIter begin, ScalarImpl::VecIter end,
+ScalarImpl::accumulateBin(VecIter &begin, ScalarImpl::VecIter end,
                           Datapoint::KeyType binMaxKey)
 {
     Datapoint::ValueType binSize = 0;
-    while (begin < end && (*begin).value <= binMaxKey) {
+    while (begin < end && (*begin).key <= binMaxKey) {
         binSize += (*begin).value;
         begin++;
     }
@@ -45,15 +47,16 @@ ScalarImpl::makeImpl(VecIter begin, VecIter end,
                Datapoint::KeyType minKey, Datapoint::KeyType maxKey,
                BinIter binBegin, BinIter binEnd)
 {
-    Datapoint::KeyType currentMinKey = minKey;
     auto numBins = binEnd - binBegin;
-    //Datapoint::KeyType range = maxKey - minKey;
+    const float binRange = static_cast<float>(maxKey - minKey) / static_cast<float>(numBins);
     for (int bin_i = 0; bin_i < numBins; ++bin_i) {
-        long remainingBins = numBins - bin_i;
-        Datapoint::KeyType binMaxKey =
-                currentMinKey + ((maxKey - currentMinKey)  / (remainingBins));
+        Datapoint::KeyType binMaxKey;
+        if (bin_i == numBins - 1) {
+            binMaxKey = maxKey;
+        } else {
+            binMaxKey = minKey + static_cast<Datapoint::KeyType>((bin_i+1) * binRange);
+        }
         *(binBegin + bin_i) = ScalarImpl::accumulateBin(begin, end, binMaxKey);
-        currentMinKey = binMaxKey;
     }
 }
 

@@ -31,47 +31,37 @@ histogram_test::histogram_test()
 
 histogram_test::~histogram_test()
 {
-
 }
 
 void histogram_test::test_case1()
 {
-    int mismatches = 0;
-    for (size_t i = 0; i < 10; i++) {
-        size_t n_data = m_rng() % 10000 + 10;
-        size_t n_bins = m_rng() % 10 + 10;
-        std::vector<platform::Datapoint> data(n_data);
-        std::vector<qint64> bins_scalar(n_bins);
-        std::vector<qint64> bins_avx(n_bins);
-
+    for (size_t i = 0; i < 100; i++) {
+        int n_data = m_rng() % 100 + 10;
+        int n_bins = m_rng() % 10 + 10;
+        QVector<histogram::Datapoint> data(n_data);
+        QVector<histogram::Datapoint::ValueType> bins_scalar(n_bins);
+        QVector<histogram::Datapoint::ValueType> bins_avx(n_bins);
 
         for (auto i = data.begin(); i != data.end(); i++) {
             (*i).key = m_rng() % 100000000;
             (*i).value = m_rng() % 1000000 + 90000000;
         }
         std::sort(data.begin(), data.end(),
-                  [] (const platform::Datapoint &a, const platform::Datapoint &b) {
+                  [] (const histogram::Datapoint &a, const histogram::Datapoint &b) {
             return a.key < b.key;
         });
-
         qint64 max = std::max_element(data.begin(), data.end(),
-                  [] (const platform::Datapoint &a, const platform::Datapoint &b) {
+                                      [] (const histogram::Datapoint &a, const histogram::Datapoint &b) {
             return a.key < b.key;
         })->key;
         qint64 min = std::min<qint64>(max-1000, m_rng() % 100000000);
 
-        platform::make_histogram(data.data(), data.size(), min, max, bins_scalar.data(), bins_scalar.size(), false);
-        platform::make_histogram(data.data(), data.size(), min, max, bins_avx.data(), bins_avx.size(), true);
-
-        for (size_t i = 0; i < bins_scalar.size(); i++) {
-            if (bins_scalar[i] != bins_avx[i]) {
-                mismatches++;
-            }
-            QVERIFY(bins_scalar[i] == bins_avx[i]);
-        }
+        histogram::ScalarImpl().make(data.cbegin(), data.cend(),
+                                     min, max, bins_scalar.begin(), bins_scalar.end());
+        histogram::AVX2Impl().make(data.cbegin(), data.cend(),
+                                     min, max, bins_avx.begin(), bins_avx.end());
+        QVERIFY(bins_scalar == bins_avx);
     }
-
-    QVERIFY(mismatches == 0);
 
 
 }
@@ -80,27 +70,29 @@ void histogram_test::test_case2()
 {
     m_rng.seed(m_benchSeed);
     for (size_t i = 0; i < 10; i++) {
-        size_t n_data = m_rng() % 1000000 + 10;
-        size_t n_bins = m_rng() % 100 + 10;
-        std::vector<platform::Datapoint> data(n_data);
-        std::vector<qint64> bins(n_bins);
+        int n_data = m_rng() % 1000000 + 10;
+        int n_bins = m_rng() % 50 + 10;
+        QVector<histogram::Datapoint> data(n_data);
+        QVector<histogram::Datapoint::ValueType> bins(n_bins);
 
         for (auto i = data.begin(); i != data.end(); i++) {
             (*i).key = m_rng() % 100000000;
             (*i).value = m_rng() % 1000000 + 90000000;
         }
         std::sort(data.begin(), data.end(),
-                  [] (const platform::Datapoint &a, const platform::Datapoint &b) {
+                  [] (const histogram::Datapoint &a, const histogram::Datapoint &b) {
             return a.key < b.key;
         });
         qint64 max = std::max_element(data.begin(), data.end(),
-                                      [] (const platform::Datapoint &a, const platform::Datapoint &b) {
+                                      [] (const histogram::Datapoint &a, const histogram::Datapoint &b) {
             return a.key < b.key;
         })->key;
         qint64 min = std::min<qint64>(max-1000, m_rng() % 100000000);
 
+        histogram::ScalarImpl impl;
+
         QBENCHMARK {
-            platform::make_histogram(data.data(), data.size(), min, max, bins.data(), bins.size(), false);
+            impl.make(data.cbegin(), data.cend(), min, max, bins.begin(), bins.end());
         }
     }
 }
@@ -109,27 +101,29 @@ void histogram_test::test_case3()
 {
     m_rng.seed(m_benchSeed);
     for (size_t i = 0; i < 10; i++) {
-        size_t n_data = m_rng() % 1000000 + 10;
-        size_t n_bins = m_rng() % 100 + 10;
-        std::vector<platform::Datapoint> data(n_data);
-        std::vector<qint64> bins(n_bins);
+        int n_data = m_rng() % 1000000 + 10;
+        int n_bins = m_rng() % 50 + 10;
+        QVector<histogram::Datapoint> data(n_data);
+        QVector<histogram::Datapoint::ValueType> bins(n_bins);
 
         for (auto i = data.begin(); i != data.end(); i++) {
             (*i).key = m_rng() % 100000000;
             (*i).value = m_rng() % 1000000 + 90000000;
         }
         std::sort(data.begin(), data.end(),
-                  [] (const platform::Datapoint &a, const platform::Datapoint &b) {
+                  [] (const histogram::Datapoint &a, const histogram::Datapoint &b) {
             return a.key < b.key;
         });
         qint64 max = std::max_element(data.begin(), data.end(),
-                                      [] (const platform::Datapoint &a, const platform::Datapoint &b) {
+                                      [] (const histogram::Datapoint &a, const histogram::Datapoint &b) {
             return a.key < b.key;
         })->key;
         qint64 min = std::min<qint64>(max-1000, m_rng() % 100000000);
 
+        histogram::AVX2Impl impl;
+
         QBENCHMARK {
-            platform::make_histogram(data.data(), data.size(), min, max, bins.data(), bins.size(), true);
+            impl.make(data.cbegin(), data.cend(), min, max, bins.begin(), bins.end());
         }
     }
 }

@@ -1,18 +1,19 @@
 #include "agehistogram.h"
 #include "platform.h"
+#include "histogram.h"
 #include <algorithm>
 
 void AgeVector::finalize()
 {
     std::sort(m_vec.begin(), m_vec.end(),
-              [] (const AgeDatapoint& a, const AgeDatapoint &b) -> bool { return a.timestamp < b.timestamp; }
+              [] (const histogram::Datapoint& a, const histogram::Datapoint &b) -> bool {  return a.key < b.key; }
     );
 
     qint64 a = 0;
     for (auto i = m_vec.cbegin(); i != m_vec.cend(); ++i) {
-        a += (*i).size;
+        a += (*i).value;
         if (a >= m_totalSize / 2) {
-            m_medianTimestamp.set((*i).timestamp);
+            m_medianTimestamp.set((*i).key);
             break;
         }
     }
@@ -22,16 +23,16 @@ AgeHistogram::AgeHistogram(const AgeVector &vector, int num_buckets,
                            qint64 min_timestamp, qint64 max_timestamp):
     m_bins(num_buckets)
 {
-    static_assert((sizeof(AgeDatapoint) == sizeof(platform::Datapoint)) &&
-                  (offsetof(AgeDatapoint, timestamp) == offsetof(platform::Datapoint, key)) &&
-                  (offsetof(AgeDatapoint, size) == offsetof(platform::Datapoint, value)),
-                  "AgeDatapoint <-> platform::Datapoint layout mismatched");
     m_medianTimestamp = vector.medianTimestamp();
 
-    platform::make_histogram(reinterpret_cast<const platform::Datapoint *>(vector.datapoints().begin()),
-                             static_cast<size_t>(vector.datapoints().length()),
-                             min_timestamp, max_timestamp, m_bins.data(),
-                             static_cast<size_t>(m_bins.length()), true);
+    histogram::Impl *impl = platform::histogramImpl;
+    impl->make(vector.datapoints().cbegin(), vector.datapoints().cend(),
+               min_timestamp, max_timestamp, m_bins.begin(), m_bins.end());
+
+   // platform::make_histogram(reinterpret_cast<const platform::Datapoint *>(vector.datapoints().begin()),
+   //                          static_cast<size_t>(vector.datapoints().length()),
+   //                          min_timestamp, max_timestamp, m_bins.data(),
+   //                          static_cast<size_t>(m_bins.length()), true);
 }
 
 QString

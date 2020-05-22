@@ -1,5 +1,6 @@
 #include "dirage.h"
 #include "scanner.h"
+#include "platform.h"
 
 #include <QApplication>
 
@@ -9,7 +10,7 @@ int main(int argc, char *argv[])
     DirAge w;
 
     qRegisterMetaType<AgeVector>();
-    qRegisterMetaType<AgeDatapoint>();
+    platform::initHistogramImpl();
     w.show();
     return a.exec();
 }

@@ -94,6 +94,9 @@ AVX2Impl::lowerBound(VecIter begin, VecIter end, Datapoint::KeyType minKey)
     while (length > 3) {
         AVX2Impl::lowerBoundStep(begin, length, minKey);
     }
+    while (length > 1) {
+        ScalarImpl::lowerBoundStep(begin, length, minKey);
+    }
 }
 
 inline Datapoint::ValueType

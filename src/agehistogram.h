@@ -56,6 +56,7 @@ public:
     TimestampOption medianTimestamp() const { return m_medianTimestamp; }
     qint64 largestBinSize() const;
     qint64 largestBinSize(int fromIndex, int toIndex) const;
+    qint64 sumBins() const { return m_totalSize; }
 
 };
 Q_DECLARE_METATYPE(AgeHistogram);

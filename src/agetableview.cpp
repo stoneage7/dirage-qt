@@ -6,6 +6,20 @@
 const int DEFAULT_VISIBLE_BINS = 50;
 const int MIN_VISIBLE_BINS = 5;
 
+QString ByteSizeDelegate::displayText(const QVariant &value, const QLocale &locale) const
+{
+    Q_UNUSED(locale)
+    qreal bytes = value.value<qint64>();
+    const QString units[] = { QStringLiteral(" kiB"), QStringLiteral(" MiB"),
+                              QStringLiteral(" GiB") };
+    size_t i = 0;
+    while (i < sizeof(units) / sizeof(units[0]) && bytes > 1024.0) {
+        i++;
+        bytes /= 1024.0;
+    }
+    return QStringLiteral("%1 %2").arg(bytes, 0, 'g', 2).arg(units[i]);
+}
+
 qint64 AgeTableView::largestBinSizeInView(AgeModel *model)
 {
     // have AgeModel as parameter to avoid downcasting multiple times
@@ -117,9 +131,10 @@ void AgeTableView::setModel(QAbstractItemModel *model)
     AgeModel *am = qobject_cast<AgeModel*>(model);
     if (am != nullptr) {
         connect(am, &AgeModel::numBinsChanged, this, &AgeTableView::numBinsChanged);
+        this->setItemDelegateForColumn(am->COLUMN_SIZE, &m_byteSizeDelegate);
         this->setItemDelegateForColumn(am->COLUMN_AGE, &m_histogramDelegate);
     }
-    this->horizontalHeader()->setSectionResizeMode(1, QHeaderView::Stretch);
+    this->horizontalHeader()->setSectionResizeMode(AgeModel::COLUMN_AGE, QHeaderView::Stretch);
     this->verticalHeader()->setSectionResizeMode(QHeaderView::ResizeToContents);
 }
 

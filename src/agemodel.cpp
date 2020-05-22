@@ -53,7 +53,7 @@ int AgeModel::rowCount(const QModelIndex &parent) const
 
 int AgeModel::columnCount(const QModelIndex &parent) const
 {
-    return parent.isValid() ? 0 : 2;
+    return parent.isValid() ? 0 : COLUMN_COUNT;
 }
 
 QVariant AgeModel::data(const QModelIndex &index, int role) const
@@ -63,7 +63,7 @@ QVariant AgeModel::data(const QModelIndex &index, int role) const
         case COLUMN_NAME:
             return QVariant(m_rows.at(index.row()).label);
         case COLUMN_SIZE:
-            return QVariant(m_rows.at(index.row()).)
+            return QVariant(m_rows.at(index.row()).histogram.sumBins());
         case COLUMN_AGE:
             return QVariant::fromValue(m_rows.at(index.row()));
         }
@@ -77,11 +77,11 @@ QVariant AgeModel::headerData(int section, Qt::Orientation orientation, int role
         if (role == Qt::DisplayRole) {
             switch (section) {
             case COLUMN_NAME:
-                return "Name";
+                return tr("Name");
             case COLUMN_SIZE:
-                return "Size";
+                return tr("Size");
             case COLUMN_AGE:
-                return "Age";
+                return tr("Age");
             }
         }
     }
@@ -96,7 +96,6 @@ void AgeModel::sort(int column, Qt::SortOrder order)
         std::stable_sort(m_rows.begin(), m_rows.end(),
                          [asc] (const AgeModelRow &a, const AgeModelRow &b) -> bool {
             bool less = a.name.compare(b.name) < 0;
-            qInfo() << a.name << "<" << b.name << "==" << less;
             return asc ? less : !less;
         });
         break;

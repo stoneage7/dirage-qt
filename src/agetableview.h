@@ -4,8 +4,18 @@
 #include <QtCore>
 #include <QTableView>
 #include <QLabel>
+#include <QStyledItemDelegate>
 #include "ageitemdelegate.h"
 #include "agemodel.h"
+
+class ByteSizeDelegate : public QStyledItemDelegate
+{
+    Q_OBJECT
+public:
+    ByteSizeDelegate() { }
+    virtual ~ByteSizeDelegate() { }
+    virtual QString displayText(const QVariant &value, const QLocale &locale) const;
+};
 
 class AgeTableView : public QTableView
 {
@@ -13,6 +23,7 @@ class AgeTableView : public QTableView
 
 private:
     AgeItemDelegate m_histogramDelegate;
+    ByteSizeDelegate m_byteSizeDelegate;
     qint64 largestBinSizeInView(AgeModel *model);
     void updateLabels(AgeModel *model);
 

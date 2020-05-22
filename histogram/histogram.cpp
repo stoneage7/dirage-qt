@@ -5,6 +5,27 @@
 
 namespace histogram {
 
+
+std::pair<Datapoint::KeyType, Datapoint::KeyType>
+Impl::binRange(Datapoint::KeyType minKey, Datapoint::KeyType maxKey,
+                     int numBins, int binIndex)
+{
+    Datapoint::KeyType resultMin, resultMax;
+    const float binRange = static_cast<float>(maxKey - minKey) / static_cast<float>(numBins);
+    if (binIndex == numBins - 1) {
+        resultMin = minKey + static_cast<Datapoint::KeyType>((binIndex) * binRange);
+        resultMax = maxKey;
+    } else {
+        if (binIndex == 0) {
+            resultMin = minKey;
+        } else {
+            resultMin = minKey + static_cast<Datapoint::KeyType>((binIndex) * binRange);
+        }
+        resultMax = minKey + static_cast<Datapoint::KeyType>((binIndex+1) * binRange);
+    }
+    return std::pair<Datapoint::KeyType, Datapoint::KeyType>(resultMin, resultMax);
+}
+
 Impl::~Impl() {  }
 
 void
@@ -70,6 +91,5 @@ void ScalarImpl::make(ScalarImpl::VecIter begin, ScalarImpl::VecIter end,
 }
 
 ScalarImpl::~ScalarImpl() { }
-
 
 } // namespace histogram

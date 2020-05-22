@@ -39,9 +39,14 @@ public:
     virtual int columnCount(const QModelIndex &parent = QModelIndex()) const;
     virtual QVariant data(const QModelIndex &index, int role = Qt::DisplayRole) const;
     virtual QVariant headerData(int section, Qt::Orientation orientation, int role) const;
+    virtual void sort(int column, Qt::SortOrder order);
 
     int numBins() const { return m_numBins; }
     qint64 largestBinSize(int fromIndex, int toIndex) const;
+    qint64 minTimestamp() const { return m_minModelTimestamp.get(); }
+    qint64 maxTimestamp() const { return m_maxModelTimestamp.get(); }
+    bool timestampsAreValid() const { return m_minModelTimestamp.isValid() && m_maxModelTimestamp.isValid(); }
+    std::pair<qint64, qint64> binRange(int binIndex) const;
 
 signals:
     void minMaxTimestampChanged(qint64 min_ts, qint64 max_ts);

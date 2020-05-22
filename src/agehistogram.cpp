@@ -19,20 +19,15 @@ void AgeVector::finalize()
     }
 }
 
-AgeHistogram::AgeHistogram(const AgeVector &vector, int num_buckets,
-                           qint64 min_timestamp, qint64 max_timestamp):
-    m_bins(num_buckets)
+AgeHistogram::AgeHistogram(const AgeVector &vector, int numBins,
+                           qint64 minTimestamp, qint64 maxTimestamp):
+    m_bins(numBins)
 {
     m_medianTimestamp = vector.medianTimestamp();
 
     histogram::Impl *impl = platform::histogramImpl;
     impl->make(vector.datapoints().cbegin(), vector.datapoints().cend(),
-               min_timestamp, max_timestamp, m_bins.begin(), m_bins.end());
-
-   // platform::make_histogram(reinterpret_cast<const platform::Datapoint *>(vector.datapoints().begin()),
-   //                          static_cast<size_t>(vector.datapoints().length()),
-   //                          min_timestamp, max_timestamp, m_bins.data(),
-   //                          static_cast<size_t>(m_bins.length()), true);
+               minTimestamp, maxTimestamp, m_bins.begin(), m_bins.end());
 }
 
 QString

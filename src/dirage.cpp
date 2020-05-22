@@ -14,8 +14,8 @@ DirAge::DirAge(QWidget *parent)
     ui->statsTable->setModel(&m_ageModel);
     ui->statsTable->connectScollBar(ui->ageScrollBar);
     ui->statsTable->connectZoomSlider(ui->zoomSlider);
+    ui->statsTable->connectLabels(ui->minTimestampLabel, ui->maxTimestampLabel);
     connect(ui->numBinsSlider, &QAbstractSlider::valueChanged, &m_ageModel, &AgeModel::setNumBins);
-    connect(&m_ageModel, &AgeModel::minMaxTimestampChanged, this, &DirAge::updateMinMaxTimestamp);
     connect(ui->upDirButton, &QPushButton::clicked, this, &DirAge::upDir);
     ui->currentDirLabel->clear();
     ui->minTimestampLabel->setText(QStringLiteral());
@@ -109,12 +109,3 @@ void DirAge::updateScanningStatus(QString current_path)
     }
 
 }
-
-void DirAge::updateMinMaxTimestamp(qint64 min_ts, qint64 max_ts)
-{
-    QDateTime min_datetime = QDateTime::fromSecsSinceEpoch(min_ts);
-    ui->minTimestampLabel->setText(min_datetime.toString());
-    QDateTime max_datetime = QDateTime::fromSecsSinceEpoch(max_ts);
-    ui->maxTimestampLabel->setText(max_datetime.toString());
-}
-

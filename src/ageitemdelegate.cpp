@@ -1,6 +1,8 @@
 
 #include <QPainter>
+#include "platform.h"
 #include "ageitemdelegate.h"
+#include "agemodel.h"
 
 const int DEFAULT_CHART_WIDTH = 500;
 const int LARGEST_BIN_HEIGHT_PX = 100;
@@ -25,6 +27,8 @@ AgeItemDelegate::paint(QPainter *painter, const QStyleOptionViewItem &option, co
     }
     painter->save();
     painter->translate(option.rect.x(), option.rect.y());
+
+    // paint chart
     int remainingLength = option.rect.width();
     int nextX = 0;
     int maxHeight = option.rect.height();
@@ -47,6 +51,23 @@ AgeItemDelegate::paint(QPainter *painter, const QStyleOptionViewItem &option, co
         nextX += barWidth;
         remainingLength -= barWidth;
     }
+
+    // paint median timestamp
+    const AgeModel *am = qobject_cast<const AgeModel*>(index.model());
+    const qint64 minTimestamp = am->binRange(m_firstVisibleBin).first;
+    const qint64 maxTimestamp = am->binRange(m_firstVisibleBin + m_numVisibleBins - 1).second;
+    const TimestampOption medianTs = value.histogram.medianTimestamp();
+    if (medianTs.isValid() && medianTs.get() >= minTimestamp && medianTs.get() <= maxTimestamp) {
+        int medianX = static_cast<int>(
+                    static_cast<qreal>(medianTs.get() - minTimestamp)
+                    / static_cast<qreal>(maxTimestamp - minTimestamp)
+                    * static_cast<qreal>(option.rect.width()));
+        painter->setPen(QColor(Qt::black));
+        painter->drawLine(medianX, 0, medianX, maxHeight);
+    }
+
+
+
     painter->restore();
 }
 
@@ -55,25 +76,4 @@ QSize AgeItemDelegate::sizeHint(const QStyleOptionViewItem &option, const QModel
     Q_UNUSED(option)
     Q_UNUSED(index)
     return QSize(DEFAULT_CHART_WIDTH, LARGEST_BIN_HEIGHT_PX);
-}
-
-
-void AgeItemDelegate::updateLargestBinInView(const AgeModel *model)
-{
-    if (model != nullptr) {
-        m_largestBinInView = model->largestBinSize(m_firstVisibleBin,
-                                                   m_firstVisibleBin + m_numVisibleBins - 1);
-    }
-}
-
-void AgeItemDelegate::setNumVisibleBins(int newNum, const AgeModel *model)
-{
-    m_numVisibleBins = newNum;
-    this->updateLargestBinInView(model);
-}
-
-void AgeItemDelegate::setFirstVisibleBin(int newFirst, const AgeModel *model)
-{
-    m_firstVisibleBin = newFirst;
-    this->updateLargestBinInView(model);
 }

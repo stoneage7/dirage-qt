@@ -35,7 +35,6 @@ public slots:
     void runScan(QString path);
     void stopScanner();
     void updateScanningStatus(QString current_path);
-    void updateMinMaxTimestamp(qint64 min_ts, qint64 max_ts);
 };
 
 

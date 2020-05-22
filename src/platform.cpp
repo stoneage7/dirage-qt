@@ -60,9 +60,9 @@ void initHistogramImpl()
 #if defined(__GNUC__)
     __builtin_cpu_init();
     if (__builtin_cpu_supports("avx2")) {
-        histogramImpl = &histScalarImpl;
-    } else {
         histogramImpl = &histAVX2Impl;
+    } else {
+        histogramImpl = &histScalarImpl;
     }
 #else
     histogramImpl = new histogram::ScalarImpl;

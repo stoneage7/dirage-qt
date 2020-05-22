@@ -1,9 +1,8 @@
-#ifndef AGEITEMDELEGATE_H
+﻿#ifndef AGEITEMDELEGATE_H
 #define AGEITEMDELEGATE_H
 
 #include <QtCore>
 #include <QAbstractItemDelegate>
-#include "agemodel.h"
 
 class AgeItemDelegate : public QAbstractItemDelegate
 {
@@ -23,9 +22,9 @@ public:
     int firstVisibleBin() const { return m_firstVisibleBin; }
 
 public slots:
-    void updateLargestBinInView(const AgeModel *model);
-    void setNumVisibleBins(int newNum, const AgeModel *model);
-    void setFirstVisibleBin(int newFirst, const AgeModel *model);
+    void setLargestBinInView(qint64 newLargestBin) { m_largestBinInView = newLargestBin; }
+    void setNumVisibleBins(int newNum) { m_numVisibleBins = newNum; }
+    void setFirstVisibleBin(int newFirst) { m_firstVisibleBin = newFirst; }
 };
 
 #endif // AGEITEMDELEGATE_H

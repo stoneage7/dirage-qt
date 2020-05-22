@@ -1,4 +1,5 @@
 #include "agemodel.h"
+#include "platform.h"
 #include <QDir>
 
 const int NUM_BUCKETS_DEFAULT = 50;
@@ -83,6 +84,37 @@ QVariant AgeModel::headerData(int section, Qt::Orientation orientation, int role
     return QVariant();
 }
 
+void AgeModel::sort(int column, Qt::SortOrder order)
+{
+    bool asc = (order == Qt::AscendingOrder);
+    switch (column) {
+    case COLUMN_NAME:
+        std::stable_sort(m_rows.begin(), m_rows.end(),
+                         [asc] (const AgeModelRow &a, const AgeModelRow &b) -> bool {
+            bool less = (a.name < b.name);
+            return asc ? less : !less;
+        });
+        break;
+    case COLUMN_AGE:
+        std::stable_sort(m_rows.begin(), m_rows.end(),
+                         [asc] (const AgeModelRow &a, const AgeModelRow &b) -> bool {
+            bool less = false;
+            if (a.histogram.bins().isEmpty() && !b.histogram.bins().isEmpty()) {
+                return true;
+            } else if (b.histogram.bins().isEmpty()) {
+                return false;
+            } else {
+                less = a.name < b.name;
+            }
+            less = a.histogram.medianTimestamp().get() < b.histogram.medianTimestamp().get();
+            return asc ? less : !less;
+        });
+        break;
+    }
+    emit dataChanged(this->createIndex(0, 0), this->createIndex(this->rowCount()-1,
+                                                                this->columnCount()-1));
+}
+
 qint64 AgeModel::largestBinSize(int fromIndex, int toIndex) const
 {
     Q_ASSERT(fromIndex >= 0 && toIndex >= 0);
@@ -99,6 +131,12 @@ qint64 AgeModel::largestBinSize(int fromIndex, int toIndex) const
         }
     }
     return largestBin;
+}
+
+std::pair<qint64, qint64> AgeModel::binRange(int binIndex) const
+{
+    return platform::histogramImpl->binRange(this->minTimestamp(), this->maxTimestamp(),
+                                             this->numBins(), binIndex);
 }
 
 // TODO implement CHANGE

@@ -20,6 +20,7 @@ public:
     AgeModel(QObject *parent);
     enum Columns {
         COLUMN_NAME,
+        COLUMN_SIZE,
         COLUMN_AGE,
         COLUMN_COUNT
     };

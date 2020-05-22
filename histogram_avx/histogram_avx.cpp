@@ -1,6 +1,7 @@
 
 #include "histogram_avx.h"
 #include "immintrin.h"
+#include <type_traits>
 
 #include <QtDebug>
 
@@ -20,15 +21,6 @@ static inline __m256i my_cmp_lt_epu64(__m256i a, __m256i b)
     return my_cmp_gt_epu64(b, a);
 }
 
-static inline unsigned my_clz(unsigned c)
-{
-    unsigned i = 0;
-    while (i < 32 && 0 == (c & (1 << (31-i)))) {
-        i++;
-    }
-    return i;
-}
-
 template <typename I, typename P>
 static inline const P *iter_to_pointer_type(const I iter) { return static_cast<const P*>(iter); }
 
@@ -45,6 +37,13 @@ inline const __m256i_u *iter_to_pointer_type(AVX2Impl::VecIter iter)
 {
     const Datapoint *tmp = static_cast<const Datapoint*>(iter);
     const __m256i_u *rv = reinterpret_cast<const __m256i_u*>(tmp);
+    return rv;
+}
+
+template <>
+inline const __m256i_u *iter_to_pointer_type(AVX2Impl::BinConstIter iter)
+{
+    const __m256i_u *rv = reinterpret_cast<const __m256i_u*>(iter);
     return rv;
 }
 
@@ -100,6 +99,9 @@ AVX2Impl::lowerBound(VecIter begin, VecIter end, Datapoint::KeyType minKey)
 inline Datapoint::ValueType
 AVX2Impl::accumulateBin(VecIter &begin,  VecIter end, Datapoint::KeyType binMaxKey)
 {
+    static_assert(sizeof(*begin) == 16 && sizeof(begin->key) == 8 && sizeof(begin->value) == 8 &&
+                  offsetof(Datapoint, key) == 0 && offsetof(Datapoint, value) == 8,
+                  "AVX2Impl::accumulateBin() - only { 64bit int key, 64bit in value }");
     Datapoint::ValueType binSize = 0;
     for (; end - begin >= 4; begin += 4) {
         const __m256i_u *reg1Ptr = iter_to_pointer_type<VecIter, __m256i_u>(begin);
@@ -127,11 +129,7 @@ AVX2Impl::accumulateBin(VecIter &begin,  VecIter end, Datapoint::KeyType binMaxK
         if (!_mm256_testc_si256(testGt, _mm256_set1_epi64x(-1))) {
             unsigned mask = static_cast<unsigned>(_mm256_movemask_epi8(testGt));
             if (mask != 0) {
-#ifdef __GNUC__
                 int clz = __builtin_clz(mask);
-#else
-                int clz = my_clz(mask);
-#endif
                 begin += 4 - (clz >> 3);
             }
             break;
@@ -176,6 +174,62 @@ void AVX2Impl::make(VecIter begin, VecIter end,
 {
     AVX2Impl::lowerBound(begin, end, minKey);
     AVX2Impl::makeImpl(begin, end, minKey, maxKey, binBegin, binEnd);
+}
+
+Datapoint::ValueType AVX2Impl::largestValue(BinConstIter from, BinConstIter to)
+{
+    static_assert(sizeof(*from) == 8 && std::is_pointer<BinIter>::value,
+                  "AVX2Impl::largestValue() - 64bit ints only");
+    __m256i maxBins = _mm256_set1_epi64x(0);
+    while (to - from > 4) {
+        const __m256i_u *binsPtr = iter_to_pointer_type<BinConstIter, __m256i_u>(from);
+        const __m256i bins = _mm256_loadu_si256(binsPtr);
+        const __m256i cmpgt = _mm256_cmpgt_epi64(bins, maxBins);
+        maxBins = _mm256_or_si256(_mm256_andnot_si256(cmpgt, maxBins),
+                                  _mm256_and_si256(bins, cmpgt));
+        std::advance(from, 4);
+    }
+
+    Datapoint::ValueType max = 0;
+    __m256i_u maxU;
+    _mm256_storeu_si256(&maxU, maxBins);
+    for (int i = 0; i < 4; i++) {
+        if (max < maxBins[i]) {
+            max = maxBins[i];
+        }
+    }
+    if (from < to) {
+       Datapoint::ValueType restMax = ScalarImpl::largestValue(from, to);
+       if (max < restMax) {
+           max = restMax;
+       }
+    }
+    return max;
+}
+
+Datapoint::ValueType AVX2Impl::sumValues(BinConstIter from, BinConstIter to)
+{
+    static_assert(sizeof(*from) == 8 && std::is_pointer<BinIter>::value,
+                  "AVX2Impl::sumValues() - 64bit ints only");
+    __m256i acc = _mm256_set1_epi64x(0);
+    while (to - from > 4) {
+        const __m256i_u *binsPtr = iter_to_pointer_type<BinConstIter, __m256i_u>(from);
+        acc = _mm256_add_epi64(acc, _mm256_loadu_si256(binsPtr));
+        std::advance(from, 4);
+    }
+
+    __m256i_u accU;
+    _mm256_storeu_si256(&accU, acc);
+    Datapoint::ValueType sum = 0;
+    for (int i = 0; i < 4; i++) {
+        sum += acc[i];
+    }
+
+    if (from < to) {
+        sum += ScalarImpl::sumValues(from, to);
+    }
+
+    return sum;
 }
 
 AVX2Impl::~AVX2Impl()

@@ -60,9 +60,11 @@ QVariant AgeModel::data(const QModelIndex &index, int role) const
 {
     if (role == Qt::DisplayRole) {
         switch (index.column()) {
-        case 0:
+        case COLUMN_NAME:
             return QVariant(m_rows.at(index.row()).label);
-        case 1:
+        case COLUMN_SIZE:
+            return QVariant(m_rows.at(index.row()).)
+        case COLUMN_AGE:
             return QVariant::fromValue(m_rows.at(index.row()));
         }
     }
@@ -76,6 +78,8 @@ QVariant AgeModel::headerData(int section, Qt::Orientation orientation, int role
             switch (section) {
             case COLUMN_NAME:
                 return "Name";
+            case COLUMN_SIZE:
+                return "Size";
             case COLUMN_AGE:
                 return "Age";
             }

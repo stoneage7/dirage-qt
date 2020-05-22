@@ -20,6 +20,9 @@ public:
     virtual void make(VecIter begin, VecIter end,
                       Datapoint::KeyType minKey, Datapoint::KeyType maxKey,
                       BinIter binBegin, BinIter binEnd);
+
+    virtual Datapoint::ValueType largestValue(BinConstIter from, BinConstIter to);
+    virtual Datapoint::ValueType sumValues(BinConstIter from, BinConstIter to);
     virtual ~AVX2Impl();
 };
 

@@ -16,6 +16,7 @@ class Impl {
 public:
     typedef QVector<Datapoint>::const_iterator VecIter;
     typedef QVector<Datapoint::ValueType>::iterator BinIter;
+    typedef QVector<Datapoint::ValueType>::const_iterator BinConstIter;
 
     virtual void
     make(VecIter begin, VecIter end, Datapoint::KeyType minKey, Datapoint::KeyType maxKey,
@@ -24,6 +25,13 @@ public:
     // this function is only for display purpose
     std::pair<Datapoint::KeyType, Datapoint::KeyType>
     binRange(Datapoint::KeyType minKey, Datapoint::KeyType maxkey, int numBins, int binIndex);
+
+    virtual Datapoint::ValueType
+    largestValue(BinConstIter from, BinConstIter to) = 0;
+
+    virtual Datapoint::ValueType
+    sumValues(BinConstIter from, BinConstIter to) = 0;
+
 
     virtual ~Impl();
 };
@@ -44,6 +52,12 @@ public:
     virtual void
     make(VecIter begin, VecIter end, Datapoint::KeyType minKey, Datapoint::KeyType maxKey,
          BinIter binBegin, BinIter binEnd) override;
+
+    virtual Datapoint::ValueType
+    largestValue(BinConstIter from, BinConstIter to) override;
+
+    virtual Datapoint::ValueType
+    sumValues(BinConstIter from, BinConstIter to) override;
 
     virtual ~ScalarImpl() override;
 

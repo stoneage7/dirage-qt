@@ -28,6 +28,7 @@ AgeHistogram::AgeHistogram(const AgeVector &vector, int numBins,
     histogram::Impl *impl = platform::histogramImpl;
     impl->make(vector.datapoints().cbegin(), vector.datapoints().cend(),
                minTimestamp, maxTimestamp, m_bins.begin(), m_bins.end());
+    m_totalSize = impl->sumValues(m_bins.cbegin(), m_bins.cend());
 }
 
 QString
@@ -49,11 +50,6 @@ qint64 AgeHistogram::largestBinSize(int fromIndex, int toIndex) const
 {
     Q_ASSERT(fromIndex >= 0 && toIndex >= 0 &&
              fromIndex < m_bins.length() && toIndex < m_bins.length());
-    qint64 largestBin = 0;
-    for (int i = fromIndex; i <= toIndex; ++i) {
-        if (largestBin < m_bins.at(i)) {
-            largestBin = m_bins.at(i);
-        }
-    }
-    return largestBin;
+    return platform::histogramImpl->largestValue(m_bins.cbegin()+fromIndex,
+                                                 m_bins.cbegin()+toIndex+1);
 }

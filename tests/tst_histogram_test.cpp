@@ -20,7 +20,8 @@ private slots:
     void test_case1();
     void test_case2();
     void test_case3();
-
+    void test_case4();
+    void test_case5();
 };
 
 histogram_test::histogram_test()
@@ -37,7 +38,7 @@ void histogram_test::test_case1()
 {
     for (size_t i = 0; i < 100; i++) {
         int n_data = m_rng() % 100 + 10;
-        int n_bins = m_rng() % 10 + 10;
+        int n_bins = m_rng() % 500 + 10;
         QVector<histogram::Datapoint> data(n_data);
         QVector<histogram::Datapoint::ValueType> bins_scalar(n_bins);
         QVector<histogram::Datapoint::ValueType> bins_avx(n_bins);
@@ -71,7 +72,7 @@ void histogram_test::test_case2()
     m_rng.seed(m_benchSeed);
     for (size_t i = 0; i < 10; i++) {
         int n_data = m_rng() % 1000000 + 10;
-        int n_bins = m_rng() % 50 + 10;
+        int n_bins = m_rng() % 500 + 10;
         QVector<histogram::Datapoint> data(n_data);
         QVector<histogram::Datapoint::ValueType> bins(n_bins);
 
@@ -94,6 +95,7 @@ void histogram_test::test_case2()
         QBENCHMARK {
             impl.make(data.cbegin(), data.cend(), min, max, bins.begin(), bins.end());
         }
+        qInfo() << bins.at(bins.length()-1);
     }
 }
 
@@ -102,7 +104,7 @@ void histogram_test::test_case3()
     m_rng.seed(m_benchSeed);
     for (size_t i = 0; i < 10; i++) {
         int n_data = m_rng() % 1000000 + 10;
-        int n_bins = m_rng() % 50 + 10;
+        int n_bins = m_rng() % 500 + 10;
         QVector<histogram::Datapoint> data(n_data);
         QVector<histogram::Datapoint::ValueType> bins(n_bins);
 
@@ -125,8 +127,52 @@ void histogram_test::test_case3()
         QBENCHMARK {
             impl.make(data.cbegin(), data.cend(), min, max, bins.begin(), bins.end());
         }
+        qInfo() << bins.at(bins.length()-1);
     }
 }
+
+void histogram_test::test_case4()
+{
+    m_rng.seed(m_benchSeed);
+    histogram::Datapoint::ValueType max = 0, newmax = 0;
+    for (size_t i = 0; i < 10; i++) {
+        int n_data = m_rng() % 10000;
+        QVector<histogram::Datapoint::ValueType> data(n_data);
+        for (auto i = data.begin(); i != data.end(); i++) {
+            (*i) = static_cast<histogram::Datapoint::ValueType>(m_rng());
+        }
+        histogram::ScalarImpl impl;
+        QBENCHMARK {
+            newmax = impl.sumValues(data.begin(), data.end());
+        }
+        if (max < newmax) {
+            max = newmax;
+        }
+    }
+    qInfo() << max;
+}
+
+void histogram_test::test_case5()
+{
+    m_rng.seed(m_benchSeed);
+    histogram::Datapoint::ValueType max = 0, newmax = 0;
+    for (size_t i = 0; i < 10; i++) {
+        int n_data = m_rng() % 10000;
+        QVector<histogram::Datapoint::ValueType> data(n_data);
+        for (auto i = data.begin(); i != data.end(); i++) {
+            (*i) = static_cast<histogram::Datapoint::ValueType>(m_rng());
+        }
+        histogram::AVX2Impl impl;
+        QBENCHMARK {
+            newmax = impl.sumValues(data.begin(), data.end());
+        }
+        if (max < newmax) {
+            max = newmax;
+        }
+    }
+    qInfo() << max;
+}
+
 QTEST_MAIN(histogram_test)
 
 #include "tst_histogram_test.moc"

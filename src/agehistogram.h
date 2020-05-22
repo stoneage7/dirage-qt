@@ -45,6 +45,7 @@ struct AgeHistogram
 private:
     QVector<qint64> m_bins;
     TimestampOption m_medianTimestamp;
+    qint64 m_totalSize;
 
 public:
     AgeHistogram() = default;

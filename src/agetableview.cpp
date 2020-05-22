@@ -1,6 +1,7 @@
 #include "agetableview.h"
 #include <QScrollBar>
 #include <QHeaderView>
+#include <QMouseEvent>
 
 const int DEFAULT_VISIBLE_BINS = 50;
 const int MIN_VISIBLE_BINS = 5;
@@ -27,6 +28,17 @@ void AgeTableView::updateLabels(AgeModel *model)
     } else {
         emit setMinLabel(QString());
         emit setMaxLabel(QString());
+    }
+}
+
+void AgeTableView::mouseDoubleClickEvent(QMouseEvent *event)
+{
+    int row = this->rowAt(event->y());
+    const AgeModel *am = qobject_cast<const AgeModel*>(this->model());
+    if (am != nullptr) {
+        QVariant value = am->data(am->index(row, AgeModel::COLUMN_AGE));
+        QString name = value.value<AgeModelRow>().name;
+        emit doubleClickedName(name);
     }
 }
 

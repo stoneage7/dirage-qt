@@ -15,6 +15,8 @@ DirAge::DirAge(QWidget *parent)
     ui->statsTable->connectScollBar(ui->ageScrollBar);
     ui->statsTable->connectZoomSlider(ui->zoomSlider);
     ui->statsTable->connectLabels(ui->minTimestampLabel, ui->maxTimestampLabel);
+    connect(ui->statsTable, &AgeTableView::doubleClickedName, this, &DirAge::runScan);
+    connect(ui->statsTable, &AgeTableView::clickedEmptyTable, this, &DirAge::openDirDialog);
     connect(ui->numBinsSlider, &QAbstractSlider::valueChanged, &m_ageModel, &AgeModel::setNumBins);
     connect(ui->upDirButton, &QPushButton::clicked, this, &DirAge::upDir);
     ui->currentDirLabel->clear();
@@ -35,10 +37,10 @@ void DirAge::changeScanButtonState(DirAge::ScanButtonState new_state)
     case DirAge::ScanButtonOpen:
         ui->scanButton->disconnect(this);
         connect(ui->scanButton, &QPushButton::clicked, this, &DirAge::openDirDialog);
-        ui->scanButton->setText(QStringLiteral("Scan"));
+        ui->scanButton->setText(tr("Scan"));
         return;
     case DirAge::ScanButtonCancel:
-        ui->scanButton->setText(QStringLiteral("Cancel"));
+        ui->scanButton->setText(tr("Cancel"));
         connect(ui->scanButton, &QPushButton::clicked, this, &DirAge::stopScanner);
         return;
     }
@@ -47,7 +49,7 @@ void DirAge::changeScanButtonState(DirAge::ScanButtonState new_state)
 void DirAge::openDirDialog()
 {
     QString d =  QFileDialog::getExistingDirectory(this,
-                                                   QStringLiteral("Select a directory to scan."));
+                                                   tr("Select a directory to scan."));
     if (!d.isEmpty()) {
         this->runScan(d);
     }
@@ -66,7 +68,9 @@ void DirAge::upDir()
 
 void DirAge::runScan(QString path)
 {
-    Q_ASSERT(m_scanner == nullptr);
+    if (m_scanner != nullptr) {
+        this->stopScanner();
+    }
     m_path.reset(new QDir(path));
     ui->currentDirLabel->setText(path);
     m_ageModel.clear();
@@ -94,18 +98,19 @@ void DirAge::stopScanner()
     m_scannerPing.reset(nullptr);
     this->changeScanButtonState(DirAge::ScanButtonOpen);
     this->updateScanningStatus(QString());
+    ui->statsTable->setSortingEnabled(true);
 }
 
 void DirAge::updateScanningStatus(QString current_path)
 {
     if (m_scanner != nullptr) {
         if (current_path.isEmpty()) {
-            ui->statusbar->showMessage(QStringLiteral("scanning %1").arg(m_scanner->path()));
+            ui->statusbar->showMessage(tr("scanning %1").arg(m_scanner->path()));
         } else {
-            ui->statusbar->showMessage(QStringLiteral("scanning %2").arg(current_path));
+            ui->statusbar->showMessage(tr("scanning %2").arg(current_path));
         }
     } else {
-        ui->statusbar->showMessage("Ready.");
+        ui->statusbar->showMessage(tr("Ready."));
     }
 
 }

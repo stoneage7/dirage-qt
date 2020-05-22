@@ -93,8 +93,8 @@ void AgeTableView::histogramScroll(int newScrollValue)
 {
     AgeModel *am = qobject_cast<AgeModel*>(this->model());
     if (am != nullptr && newScrollValue < am->numBins()) {
-        m_histogramDelegate.setLargestBinInView(this->largestBinSizeInView(am));
         m_histogramDelegate.setFirstVisibleBin(newScrollValue);
+        m_histogramDelegate.setLargestBinInView(this->largestBinSizeInView(am));
         this->updateLabels(am);
     }
     this->viewport()->update();
@@ -103,9 +103,9 @@ void AgeTableView::histogramScroll(int newScrollValue)
 void AgeTableView::histogramZoom(int newZoomValue)
 {
     AgeModel *am = qobject_cast<AgeModel*>(this->model());
-    if (am != nullptr && newZoomValue < am->numBins()) {
-        m_histogramDelegate.setLargestBinInView(this->largestBinSizeInView(am));
+    if (am != nullptr && newZoomValue >= 0 && newZoomValue <= am->numBins()) {
         m_histogramDelegate.setNumVisibleBins(newZoomValue);
+        m_histogramDelegate.setLargestBinInView(this->largestBinSizeInView(am));
         this->updateLabels(am);
     }
     this->viewport()->update();

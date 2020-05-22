@@ -91,7 +91,8 @@ void AgeModel::sort(int column, Qt::SortOrder order)
     case COLUMN_NAME:
         std::stable_sort(m_rows.begin(), m_rows.end(),
                          [asc] (const AgeModelRow &a, const AgeModelRow &b) -> bool {
-            bool less = a.name.compare(b.name) == -1;
+            bool less = a.name.compare(b.name) < 0;
+            qInfo() << a.name << "<" << b.name << "==" << less;
             return asc ? less : !less;
         });
         break;
@@ -104,7 +105,7 @@ void AgeModel::sort(int column, Qt::SortOrder order)
             if (aEmpty && !bEmpty) {
                 less = true;
             } else if (aEmpty && bEmpty) {
-                less = a.name.compare(b.name) == -1;
+                less = a.name.compare(b.name) < 0;
             } else if (!aEmpty && !bEmpty) {
                 less = a.histogram.medianTimestamp().get() < b.histogram.medianTimestamp().get();
             }

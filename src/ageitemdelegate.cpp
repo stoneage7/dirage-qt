@@ -28,10 +28,50 @@ AgeItemDelegate::paint(QPainter *painter, const QStyleOptionViewItem &option, co
     painter->save();
     painter->translate(option.rect.x(), option.rect.y());
 
+    const int maxHeight = option.rect.height();
+
+    // paint center line
+    painter->setPen(Qt::lightGray);
+    painter->drawLine(0, maxHeight / 2, option.rect.width(), maxHeight / 2);
+
+    // paint horizontal gridlines
+    const qint64 tmpGig = 1024LL*1024LL*1024LL;
+    const qint64 tmpMeg = 1024LL*1024LL;
+    const qreal tmpLargest = static_cast<qreal>(m_largestBinInView);
+    const struct { qint64 unitSize; int h; int l; } gridColors[] =
+    {
+    { 100LL*tmpGig, 0, 255 }, // gigs = red, megs = green
+    { 10LL*tmpGig, 0, 170 },
+    { 1LL*tmpGig, 0, 85 },
+    { 100LL*tmpMeg, 120, 255 },
+    { 10LL*tmpMeg, 120, 170 },
+    { 1LL*tmpMeg, 120, 85 },
+    { 0, 0, 0 }
+    };
+    int c = 0;
+    while (gridColors[c].unitSize > 0) {
+        if (gridColors[c].unitSize <= m_largestBinInView / 1.5) {
+            break;
+        }
+        c++;
+    }
+    if (gridColors[c].unitSize != 0) {
+        const qreal fraction = tmpLargest / static_cast<qreal>(gridColors[c].unitSize);
+        painter->setPen(QColor::fromHsl(gridColors[c].h, 80, gridColors[c].l));
+        for (qreal j = 1; j < static_cast<qreal>(fraction); j += 1.0) {
+            const qreal offsetY = option.rect.height() / fraction * j / 2;
+            const qreal center = option.rect.height() / 2;
+            painter->drawLine(QPointF(0.0, center-offsetY),
+                              QPointF(option.rect.width(), center-offsetY));
+            painter->drawLine(QPointF(0.0, center+offsetY),
+                              QPointF(option.rect.width(), center+offsetY));
+        }
+
+    }
+
     // paint chart
     int remainingLength = option.rect.width();
     int nextX = 0;
-    int maxHeight = option.rect.height();
     for (int i = 0; i < m_numVisibleBins; i++) {
         int j = i + m_firstVisibleBin;
         if (j >= bins.length()) {
@@ -65,9 +105,6 @@ AgeItemDelegate::paint(QPainter *painter, const QStyleOptionViewItem &option, co
         painter->setPen(QColor(Qt::black));
         painter->drawLine(medianX, 0, medianX, maxHeight);
     }
-
-
-
     painter->restore();
 }
 

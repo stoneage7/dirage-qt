@@ -10,14 +10,14 @@ QString ByteSizeDelegate::displayText(const QVariant &value, const QLocale &loca
 {
     Q_UNUSED(locale)
     qreal bytes = value.value<qint64>();
-    const QString units[] = { QStringLiteral(" kiB"), QStringLiteral(" MiB"),
+    const QString units[] = { QStringLiteral(" B"), QStringLiteral(" kiB"), QStringLiteral(" MiB"),
                               QStringLiteral(" GiB") };
     size_t i = 0;
     while (i < sizeof(units) / sizeof(units[0]) && bytes > 1024.0) {
         i++;
         bytes /= 1024.0;
     }
-    return QStringLiteral("%1 %2").arg(bytes, 0, 'g', 2).arg(units[i]);
+    return QStringLiteral("%1 %2").arg(bytes, 0, 'f', 2).arg(units[i]);
 }
 
 qint64 AgeTableView::largestBinSizeInView(AgeModel *model)

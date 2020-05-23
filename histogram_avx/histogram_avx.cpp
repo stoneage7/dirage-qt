@@ -3,8 +3,6 @@
 #include "immintrin.h"
 #include <type_traits>
 
-#include <QtDebug>
-
 namespace histogram {
 
 // compare as unsigned 64bit integer.
@@ -47,12 +45,9 @@ inline const __m256i_u *iter_to_pointer_type(AVX2Impl::BinConstIter iter)
     return rv;
 }
 
-inline
-void AVX2Impl::lowerBoundStep(VecIter &begin, int64_t &length, Datapoint::KeyType minKey)
+inline void AVX2Impl::lowerBoundStep(VecIter &begin, int64_t &length, Datapoint::KeyType minKey)
 {
     const long long* baseAddr = iter_to_pointer_type<VecIter, long long>(begin);
-
-    // load 4 subarray offsets into xveci
     int64_t numOne = length / 3;
 
     // tmp_i = vec_i + step;
@@ -83,8 +78,7 @@ void AVX2Impl::lowerBoundStep(VecIter &begin, int64_t &length, Datapoint::KeyTyp
     }
 }
 
-inline void
-AVX2Impl::lowerBound(VecIter begin, VecIter end, Datapoint::KeyType minKey)
+inline void AVX2Impl::lowerBound(VecIter begin, VecIter end, Datapoint::KeyType minKey)
 {
     // reduce array length to 30 bits and use avx
     int64_t length = end - begin;
@@ -99,8 +93,8 @@ AVX2Impl::lowerBound(VecIter begin, VecIter end, Datapoint::KeyType minKey)
     }
 }
 
-inline Datapoint::ValueType
-AVX2Impl::accumulateBin(VecIter &begin,  VecIter end, Datapoint::KeyType binMaxKey)
+inline Datapoint::ValueType AVX2Impl::accumulateBin(VecIter &begin,  VecIter end,
+                                                    Datapoint::KeyType binMaxKey)
 {
     static_assert(sizeof(*begin) == 16 && sizeof(begin->key) == 8 && sizeof(begin->value) == 8 &&
                   offsetof(Datapoint, key) == 0 && offsetof(Datapoint, value) == 8,
@@ -145,10 +139,9 @@ AVX2Impl::accumulateBin(VecIter &begin,  VecIter end, Datapoint::KeyType binMaxK
     return binSize;
 }
 
-inline void
-AVX2Impl::makeImpl(VecIter begin, VecIter end,
-               Datapoint::KeyType minKey, Datapoint::KeyType maxKey,
-               BinIter binBegin, BinIter binEnd)
+inline void AVX2Impl::makeImpl(VecIter begin, VecIter end,
+                               Datapoint::KeyType minKey, Datapoint::KeyType maxKey,
+                               BinIter binBegin, BinIter binEnd)
 {
     auto numBins = binEnd - binBegin;
     const __m256 binRange = _mm256_set1_ps(static_cast<float>(maxKey - minKey)

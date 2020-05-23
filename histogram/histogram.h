@@ -38,8 +38,11 @@ public:
 
 class ScalarImpl : public Impl {
 protected:
-    static void lowerBoundStep(Impl::VecIter &begin, int64_t &length, Datapoint::KeyType minKey);
-    static void lowerBound(VecIter begin, VecIter end, Datapoint::KeyType minKey);
+    static void
+    lowerBoundStep(Impl::VecIter &begin, int64_t &length, Datapoint::KeyType minKey);
+
+    static void
+    lowerBound(VecIter begin, VecIter end, Datapoint::KeyType minKey);
 
     static Datapoint::ValueType
     accumulateBin(VecIter &begin, VecIter end, Datapoint::KeyType binMaxKey);

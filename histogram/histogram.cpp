@@ -5,7 +5,6 @@
 
 namespace histogram {
 
-
 std::pair<Datapoint::KeyType, Datapoint::KeyType>
 Impl::binRange(Datapoint::KeyType minKey, Datapoint::KeyType maxKey,
                      int numBins, int binIndex)
@@ -28,8 +27,7 @@ Impl::binRange(Datapoint::KeyType minKey, Datapoint::KeyType maxKey,
 
 Impl::~Impl() {  }
 
-void
-ScalarImpl::lowerBoundStep(VecIter &begin, int64_t &length, Datapoint::KeyType minKey)
+void ScalarImpl::lowerBoundStep(VecIter &begin, int64_t &length, Datapoint::KeyType minKey)
 {
     auto step = length >> 1;
     auto tmp = begin;
@@ -42,8 +40,7 @@ ScalarImpl::lowerBoundStep(VecIter &begin, int64_t &length, Datapoint::KeyType m
     }
 }
 
-void
-ScalarImpl::lowerBound(VecIter begin, VecIter end, Datapoint::KeyType minKey)
+void ScalarImpl::lowerBound(VecIter begin, VecIter end, Datapoint::KeyType minKey)
 {
     int64_t length = std::distance(begin, end);
     while (length > 0) {
@@ -51,9 +48,8 @@ ScalarImpl::lowerBound(VecIter begin, VecIter end, Datapoint::KeyType minKey)
     }
 }
 
-Datapoint::ValueType
-ScalarImpl::accumulateBin(VecIter &begin, ScalarImpl::VecIter end,
-                          Datapoint::KeyType binMaxKey)
+Datapoint::ValueType ScalarImpl::accumulateBin(VecIter &begin, ScalarImpl::VecIter end,
+                                               Datapoint::KeyType binMaxKey)
 {
     Datapoint::ValueType binSize = 0;
     while (begin < end && (*begin).key <= binMaxKey) {
@@ -63,10 +59,9 @@ ScalarImpl::accumulateBin(VecIter &begin, ScalarImpl::VecIter end,
     return binSize;
 }
 
-void
-ScalarImpl::makeImpl(VecIter begin, VecIter end,
-               Datapoint::KeyType minKey, Datapoint::KeyType maxKey,
-               BinIter binBegin, BinIter binEnd)
+void ScalarImpl::makeImpl(VecIter begin, VecIter end,
+                          Datapoint::KeyType minKey, Datapoint::KeyType maxKey,
+                          BinIter binBegin, BinIter binEnd)
 {
     auto numBins = binEnd - binBegin;
     const float binRange = static_cast<float>(maxKey - minKey) / static_cast<float>(numBins);

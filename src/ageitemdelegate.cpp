@@ -40,12 +40,12 @@ AgeItemDelegate::paint(QPainter *painter, const QStyleOptionViewItem &option, co
     const qreal tmpLargest = static_cast<qreal>(m_largestBinInView);
     const struct { qint64 unitSize; int h; int l; } gridColors[] =
     {
-    { 100LL*tmpGig, 0, 255 }, // gigs = red, megs = green
-    { 10LL*tmpGig, 0, 170 },
-    { 1LL*tmpGig, 0, 85 },
-    { 100LL*tmpMeg, 120, 255 },
-    { 10LL*tmpMeg, 120, 170 },
-    { 1LL*tmpMeg, 120, 85 },
+    { 100LL*tmpGig, 0, 200 }, // gigs = red, megs = green
+    { 10LL*tmpGig, 0, 150 },
+    { 1LL*tmpGig, 0, 100 },
+    { 100LL*tmpMeg, 120, 200 },
+    { 10LL*tmpMeg, 120, 150 },
+    { 1LL*tmpMeg, 120, 100 },
     { 0, 0, 0 }
     };
     int c = 0;

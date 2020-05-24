@@ -24,8 +24,8 @@ static void stackNewDirIterator(QDirIteratorStack &stack, const QString &entry)
 void SubdirsScanner::run()
 {
     QEventLoop events;
-    QDirIterator one_level_iter(m_path, QDir::Dirs | QDir::Hidden | QDir::NoDotAndDotDot |
-                                QDir::NoSymLinks);
+    QDirIterator one_level_iter(m_path, QDir::Dirs | QDir::Files | QDir::Hidden |
+                                QDir::NoDotAndDotDot | QDir::NoSymLinks);
     AgeVector toplevel_vector;
 
     while (one_level_iter.hasNext()) {

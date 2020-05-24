@@ -27,9 +27,6 @@ public:
     binRange(Datapoint::KeyType minKey, Datapoint::KeyType maxkey, int numBins, int binIndex);
 
     virtual Datapoint::ValueType
-    largestValue(BinConstIter from, BinConstIter to) = 0;
-
-    virtual Datapoint::ValueType
     sumValues(BinConstIter from, BinConstIter to) = 0;
 
     virtual std::pair<Datapoint::ValueType, Datapoint::ValueType>
@@ -57,9 +54,6 @@ public:
     virtual void
     make(VecIter begin, VecIter end, Datapoint::KeyType minKey, Datapoint::KeyType maxKey,
          BinIter binBegin, BinIter binEnd) override;
-
-    virtual Datapoint::ValueType
-    largestValue(BinConstIter from, BinConstIter to) override;
 
     virtual Datapoint::ValueType
     sumValues(BinConstIter from, BinConstIter to) override;

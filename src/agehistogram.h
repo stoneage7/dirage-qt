@@ -54,8 +54,6 @@ public:
     QString toString() const;
     const QVector<qint64> &bins() const { return m_bins; }
     TimestampOption medianTimestamp() const { return m_medianTimestamp; }
-    qint64 largestBinSize() const;
-    qint64 largestBinSize(int fromIndex, int toIndex) const;
     qint64 sumBins() const { return m_totalSize; }
     std::pair<qint64, qint64> largestBinAndSum(int fromIndex, int toIndex) const;
 

@@ -44,7 +44,6 @@ public:
     virtual void sort(int column, Qt::SortOrder order);
 
     int numBins() const { return m_numBins; }
-    qint64 largestBinSize(int fromIndex, int toIndex) const;
     qint64 minTimestamp() const { return m_minModelTimestamp.get(); }
     qint64 maxTimestamp() const { return m_maxModelTimestamp.get(); }
     bool timestampsAreValid() const { return m_minModelTimestamp.isValid() && m_maxModelTimestamp.isValid(); }

@@ -26,9 +26,6 @@ public:
                       BinIter binBegin, BinIter binEnd) override;
 
     virtual Datapoint::ValueType
-    largestValue(BinConstIter from, BinConstIter to) override;
-
-    virtual Datapoint::ValueType
     sumValues(BinConstIter from, BinConstIter to) override;
 
     virtual std::pair<Datapoint::ValueType, Datapoint::ValueType>

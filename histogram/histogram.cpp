@@ -85,17 +85,6 @@ void ScalarImpl::make(ScalarImpl::VecIter begin, ScalarImpl::VecIter end,
     ScalarImpl::makeImpl(begin, end, minKey, maxKey, binBegin, binEnd);
 }
 
-Datapoint::ValueType ScalarImpl::largestValue(BinConstIter from, BinConstIter to)
-{
-    Datapoint::ValueType max = 0;
-    for (; from != to; from++) {
-        if (max < (*from)) {
-            max = (*from);
-        }
-    }
-    return max;
-}
-
 Datapoint::ValueType ScalarImpl::sumValues(BinConstIter from, BinConstIter to)
 {
     Datapoint::ValueType sum = 0;

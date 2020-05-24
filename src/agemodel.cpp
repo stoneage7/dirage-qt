@@ -128,24 +128,6 @@ void AgeModel::sort(int column, Qt::SortOrder order)
                                                                 this->columnCount()-1));
 }
 
-qint64 AgeModel::largestBinSize(int fromIndex, int toIndex) const
-{
-    Q_ASSERT(fromIndex >= 0 && toIndex >= 0);
-    qint64 largestBin = 0;
-    for (auto i = m_rows.cbegin(); i != m_rows.cend(); ++i) {
-        auto &bins = (*i).histogram.bins();
-        if (bins.length() > 0) {
-            fromIndex = qMin(fromIndex, bins.length()-1);
-            toIndex = qMin(toIndex, bins.length()-1);
-            qint64 j = (*i).histogram.largestBinSize(fromIndex, toIndex);
-            if (largestBin < j) {
-                largestBin = j;
-            }
-        }
-    }
-    return largestBin;
-}
-
 std::pair<qint64, qint64> AgeModel::binRange(int binIndex) const
 {
     return platform::histogramImpl->binRange(this->minTimestamp(), this->maxTimestamp(),

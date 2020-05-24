@@ -75,6 +75,7 @@ void DirAge::runScan(QString path)
     }
     m_path.reset(new QDir(path));
     ui->currentDirLabel->setText(path);
+    this->setWindowTitle(tr("DirAge - %1 - Scanning").arg(path));
     m_ageModel.clear();
     qInfo() << "scanning" << path;
     m_scanner = new SubdirsScanner(path);
@@ -100,6 +101,11 @@ void DirAge::stopScanner()
     m_scannerPing.reset(nullptr);
     this->changeScanButtonState(DirAge::ScanButtonOpen);
     this->updateScanningStatus(QString());
+    if (!m_path.isNull() && !m_path->isEmpty()) {
+        this->setWindowTitle(tr("DirAge - %1").arg(m_path->path()));
+    } else {
+        this->setWindowTitle(tr("DirAge"));
+    }
     ui->statsTable->setSortingEnabled(true);
 }
 

@@ -41,6 +41,7 @@ void DirAge::changeScanButtonState(DirAge::ScanButtonState new_state)
         ui->scanButton->setText(tr("Scan"));
         return;
     case DirAge::ScanButtonCancel:
+        ui->scanButton->disconnect(this);
         ui->scanButton->setText(tr("Cancel"));
         connect(ui->scanButton, &QPushButton::clicked, this, &DirAge::stopScanner);
         return;

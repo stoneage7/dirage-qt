@@ -98,40 +98,57 @@ inline Datapoint::ValueType AVX2Impl::accumulateBin(VecIter &begin,  VecIter end
 {
     static_assert(sizeof(*begin) == 16 && sizeof(begin->key) == 8 && sizeof(begin->value) == 8 &&
                   offsetof(Datapoint, key) == 0 && offsetof(Datapoint, value) == 8,
-                  "AVX2Impl::accumulateBin() - only { 64bit int key, 64bit in value }");
-    Datapoint::ValueType binSize = 0;
+                  "AVX2Impl::accumulateBin() - only { 64bit int key, 64bit int value }");
+
+    __m256i acc = _mm256_set1_epi64x(0); // accumulators
+    const VecIter oldBegin = begin;
+    const __m256i maxKeys = _mm256_set1_epi64x(binMaxKey);
     for (; end - begin >= 4; begin += 4) {
         const __m256i_u *reg1Ptr = iter_to_pointer_type<VecIter, __m256i_u>(begin);
         const __m256i_u *reg2Ptr = iter_to_pointer_type<VecIter, __m256i_u>(begin+2);
         const __m256i reg1 = _mm256_loadu_si256(reg1Ptr);
         const __m256i reg2 = _mm256_loadu_si256(reg2Ptr);
+
         // reg1=[k1 v1 k2 v2] reg2=[k3 v3 k4 v4]
         // unpacklo / unpackhi
         // reg3=[k1 k3 k2 k4] reg4=[v1 v3 v2 v4]
-        // permute 11011000 = 0xD8
-        // reg1=[k1 k2 k3 k4] reg2=[v1 v2 v3 v4] <- across lanes k2 k3 v1 v2
-        const __m256i keys = _mm256_permute4x64_epi64(_mm256_unpacklo_epi64(reg1, reg2), 0xD8);
-        __m256i vals = _mm256_permute4x64_epi64(_mm256_unpackhi_epi64(reg1, reg2), 0xD8);
+        const __m256i keys = _mm256_unpacklo_epi64(reg1, reg2);
+        const __m256i vals = _mm256_unpackhi_epi64(reg1, reg2);
 
-        const __m256i maxKeys = _mm256_set1_epi64x(binMaxKey);
-        const __m256i testGt = _mm256_cmpgt_epi64(maxKeys, keys);
+        __m256i testGt = _mm256_cmpgt_epi64(keys, maxKeys);
 
-        vals = _mm256_and_si256(testGt, vals);
+        // add vals where key<=maxKey
+        acc = _mm256_add_epi64(acc, _mm256_andnot_si256(testGt, vals));
+
+        if (!_mm256_testz_si256(testGt, testGt)) {
+            // at least one key>maxKey
+            // permute 11011000 = 0xD8
+            // reg1=[k1 k2 k3 k4] <- across lanes k2 k3
+            testGt = _mm256_permute4x64_epi64(testGt, 0x27);
+            const unsigned mask = static_cast<unsigned>(_mm256_movemask_epi8(testGt));
+            if (mask != 0) {
+#ifdef __GNUC__
+                const int clz = __builtin_clz(mask);
+#else
+# error supply clz function for non-gcc
+#endif
+                std::advance(begin, clz >> 3);
+                break;
+            } else {
+                // all keys>maxKey
+                std::advance(begin, 4);
+                break;
+            }
+        }
+    }
+
+    Datapoint::ValueType binSize = 0;
+    if (begin > oldBegin) {
         __m256i_u unload;
-        _mm256_storeu_si256(&unload, vals);
+        _mm256_storeu_si256(&unload, acc);
         for (int i = 0; i < 4; i++) {
             binSize += unload[i];
         }
-
-        if (!_mm256_testc_si256(testGt, _mm256_set1_epi64x(-1))) {
-            unsigned mask = static_cast<unsigned>(_mm256_movemask_epi8(testGt));
-            if (mask != 0) {
-                int clz = __builtin_clz(mask);
-                begin += 4 - (clz >> 3);
-            }
-            break;
-        }
-
     }
     if (begin < end) {
         binSize += ScalarImpl::accumulateBin(begin, end, binMaxKey);

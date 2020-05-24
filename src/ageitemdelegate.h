@@ -26,6 +26,5 @@ public slots:
     void setNumVisibleBins(int newNum) { m_numVisibleBins = newNum; }
     void setFirstVisibleBin(int newFirst) { m_firstVisibleBin = newFirst; }
 };
-std::is_pod
 
 #endif // AGEITEMDELEGATE_H

@@ -5,6 +5,7 @@
 #include <QTableView>
 #include <QLabel>
 #include <QStyledItemDelegate>
+#include <QCheckBox>
 #include "ageitemdelegate.h"
 #include "agemodel.h"
 
@@ -15,6 +16,7 @@ public:
     ByteSizeDelegate() { }
     virtual ~ByteSizeDelegate() { }
     virtual QString displayText(const QVariant &value, const QLocale &locale) const;
+    static QString byteSizetoString(qint64 bytes);
 };
 
 class AgeTableView : public QTableView
@@ -36,6 +38,7 @@ public:
     void connectScollBar(QScrollBar *sb);
     void connectZoomSlider(QSlider *zoomSlider);
     void connectLabels(QLabel *minTsLabel, QLabel *maxTsLabel);
+    void connectGridlinesToggle(QCheckBox *checkBox);
 
 signals:
     void setScrollMax(int newMax);
@@ -49,6 +52,7 @@ public slots:
     void numBinsChanged(int newNumBins);
     void histogramScroll(int newScrollValue);
     void histogramZoom(int newZoomValue);
+    void toggleGridlines(int state);
 
     // QAbstractItemView interface
 public:

@@ -32,7 +32,6 @@ public:
     virtual Datapoint::ValueType
     sumValues(BinConstIter from, BinConstIter to) = 0;
 
-
     virtual ~Impl();
 };
 

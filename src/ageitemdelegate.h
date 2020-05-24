@@ -12,6 +12,7 @@ private:
     int m_numVisibleBins;
     int m_firstVisibleBin;
     qint64 m_largestBinInView;
+    bool m_gridLinesToggle;
 
 public:
     AgeItemDelegate(QObject *parent);
@@ -25,6 +26,7 @@ public slots:
     void setLargestBinInView(qint64 newLargestBin) { m_largestBinInView = newLargestBin; }
     void setNumVisibleBins(int newNum) { m_numVisibleBins = newNum; }
     void setFirstVisibleBin(int newFirst) { m_firstVisibleBin = newFirst; }
+    void setGridLinesToggle(int state) { m_gridLinesToggle = (state == Qt::Checked ); }
 };
 
 #endif // AGEITEMDELEGATE_H

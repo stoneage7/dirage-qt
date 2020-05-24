@@ -15,6 +15,7 @@ DirAge::DirAge(QWidget *parent)
     ui->statsTable->connectScollBar(ui->ageScrollBar);
     ui->statsTable->connectZoomSlider(ui->zoomSlider);
     ui->statsTable->connectLabels(ui->minTimestampLabel, ui->maxTimestampLabel);
+    ui->statsTable->connectGridlinesToggle(ui->gridLinesToggle);
     connect(ui->statsTable, &AgeTableView::doubleClickedName, this, &DirAge::runScan);
     connect(ui->statsTable, &AgeTableView::clickedEmptyTable, this, &DirAge::openDirDialog);
     connect(ui->numBinsSlider, &QAbstractSlider::valueChanged, &m_ageModel, &AgeModel::setNumBins);

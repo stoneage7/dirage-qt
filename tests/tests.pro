@@ -7,8 +7,7 @@ TEMPLATE = app
 INCLUDEPATH += \
     ../src \
 
-SOURCES +=  tst_histogram_test.cpp \
-    ../src/platform.cpp
+SOURCES +=  tst_histogram_test.cpp
 
 
 win32:CONFIG(release, debug|release): LIBS += -L$$OUT_PWD/../histogram_avx/release/ -lhistogram_avx

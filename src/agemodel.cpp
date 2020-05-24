@@ -99,6 +99,13 @@ void AgeModel::sort(int column, Qt::SortOrder order)
             return asc ? less : !less;
         });
         break;
+    case COLUMN_SIZE:
+        std::stable_sort(m_rows.begin(), m_rows.end(),
+                         [asc] (const AgeModelRow &a, const AgeModelRow &b) -> bool {
+            bool less = a.histogram.sumBins() < b.histogram.sumBins();
+            return asc ? less : !less;
+        });
+        break;
     case COLUMN_AGE:
         std::stable_sort(m_rows.begin(), m_rows.end(),
                          [asc] (const AgeModelRow &a, const AgeModelRow &b) -> bool {

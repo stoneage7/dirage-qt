@@ -13,6 +13,7 @@ AgeItemDelegate::AgeItemDelegate(QObject *parent)
    ,m_numVisibleBins(DEFAULT_NUM_VISIBLE_BINS)
    ,m_firstVisibleBin(0)
    ,m_largestBinInView(0)
+   ,m_gridLinesToggle(false)
 {
 
 }
@@ -35,34 +36,36 @@ AgeItemDelegate::paint(QPainter *painter, const QStyleOptionViewItem &option, co
     painter->drawLine(0, maxHeight / 2, option.rect.width(), maxHeight / 2);
 
     // paint horizontal gridlines
-    const qint64 tmpGig = 1024LL*1024LL*1024LL;
-    const qint64 tmpMeg = 1024LL*1024LL;
-    const qreal tmpLargest = static_cast<qreal>(m_largestBinInView);
-    const struct { qint64 unitSize; int h; int l; } gridColors[] =
-    {
-    { 100LL*tmpGig, 0, 200 }, // gigs = red, megs = green
-    { 10LL*tmpGig, 0, 150 },
-    { 1LL*tmpGig, 0, 100 },
-    { 100LL*tmpMeg, 120, 200 },
-    { 10LL*tmpMeg, 120, 150 },
-    { 1LL*tmpMeg, 120, 100 },
-    { 0, 0, 0 }
+    if (m_gridLinesToggle) {
+        const qint64 tmpGig = 1024LL*1024LL*1024LL;
+        const qint64 tmpMeg = 1024LL*1024LL;
+        const qreal tmpLargest = static_cast<qreal>(m_largestBinInView);
+        const struct { qint64 unitSize; int h; int l; } gridColors[] =
+        {
+        { 100LL*tmpGig, 0, 200 }, // gigs = red, megs = green
+        { 10LL*tmpGig, 0, 150 },
+        { 1LL*tmpGig, 0, 100 },
+        { 100LL*tmpMeg, 120, 200 },
+        { 10LL*tmpMeg, 120, 150 },
+        { 1LL*tmpMeg, 120, 100 },
+        { 0, 0, 0 }
     };
-    int c = 0;
-    while (gridColors[c].unitSize > 0) {
-        if (gridColors[c].unitSize <= m_largestBinInView / 1.5) {
-            break;
+        int c = 0;
+        while (gridColors[c].unitSize > 0) {
+            if (gridColors[c].unitSize <= m_largestBinInView / 1.5) {
+                break;
+            }
+            c++;
         }
-        c++;
-    }
-    if (gridColors[c].unitSize != 0) {
-        const qreal fraction = tmpLargest / static_cast<qreal>(gridColors[c].unitSize);
-        painter->setPen(QColor::fromHsl(gridColors[c].h, 80, gridColors[c].l));
-        for (qreal j = 1; j < static_cast<qreal>(fraction); j += 1.0) {
-            const int offsetY = static_cast<int>(option.rect.height() / fraction * j / 2);
-            const int center = option.rect.height() / 2;
-            painter->drawLine(0, center-offsetY, option.rect.width(), center-offsetY);
-            painter->drawLine(0, center+offsetY, option.rect.width(), center+offsetY);
+        if (gridColors[c].unitSize != 0) {
+            const qreal fraction = tmpLargest / static_cast<qreal>(gridColors[c].unitSize);
+            painter->setPen(QColor::fromHsl(gridColors[c].h, 80, gridColors[c].l));
+            for (qreal j = 1; j < static_cast<qreal>(fraction); j += 1.0) {
+                const int offsetY = static_cast<int>(option.rect.height() / fraction * j / 2);
+                const int center = option.rect.height() / 2;
+                painter->drawLine(0, center-offsetY, option.rect.width(), center-offsetY);
+                painter->drawLine(0, center+offsetY, option.rect.width(), center+offsetY);
+            }
         }
     }
 

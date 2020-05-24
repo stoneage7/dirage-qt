@@ -9,15 +9,21 @@ const int MIN_VISIBLE_BINS = 5;
 QString ByteSizeDelegate::displayText(const QVariant &value, const QLocale &locale) const
 {
     Q_UNUSED(locale)
-    qreal bytes = value.value<qint64>();
+    qint64 bytes = value.value<qint64>();
+    return ByteSizeDelegate::byteSizetoString(bytes);
+}
+
+QString ByteSizeDelegate::byteSizetoString(qint64 bytes)
+{
     const QString units[] = { QStringLiteral(" B"), QStringLiteral(" kiB"), QStringLiteral(" MiB"),
                               QStringLiteral(" GiB") };
     size_t i = 0;
-    while (i < sizeof(units) / sizeof(units[0]) && bytes > 1024.0) {
+    qreal bytesF = static_cast<qreal>(bytes);
+    while (i < sizeof(units) / sizeof(units[0]) && bytesF > 1024.0) {
         i++;
-        bytes /= 1024.0;
+        bytesF /= 1024.0;
     }
-    return QStringLiteral("%1 %2").arg(bytes, 0, 'f', 2).arg(units[i]);
+    return QStringLiteral("%1 %2").arg(bytesF, 0, 'f', 2).arg(units[i]);
 }
 
 qint64 AgeTableView::largestBinSizeInView(AgeModel *model)
@@ -91,6 +97,11 @@ void AgeTableView::connectLabels(QLabel *minTsLabel, QLabel *maxTsLabel)
     connect(this, &AgeTableView::setMaxLabel, maxTsLabel, &QLabel::setText);
 }
 
+void AgeTableView::connectGridlinesToggle(QCheckBox *checkBox)
+{
+    connect(checkBox, &QCheckBox::stateChanged, this, &AgeTableView::toggleGridlines);
+}
+
 void AgeTableView::numBinsChanged(int newNumBins)
 {
     emit setScrollMax(newNumBins - 1);
@@ -122,6 +133,12 @@ void AgeTableView::histogramZoom(int newZoomValue)
         m_histogramDelegate.setLargestBinInView(this->largestBinSizeInView(am));
         this->updateLabels(am);
     }
+    this->viewport()->update();
+}
+
+void AgeTableView::toggleGridlines(int state)
+{
+    m_histogramDelegate.setGridLinesToggle(state);
     this->viewport()->update();
 }
 

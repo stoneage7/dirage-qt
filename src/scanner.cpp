@@ -3,9 +3,6 @@
 #include <stack>
 #include <QDir>
 #include <QDirIterator>
-#include <QDebug>
-
-
 
 SubdirsScanner::SubdirsScanner(const QString &path, QObject *parent):
     QThread(parent),

@@ -105,9 +105,9 @@ void DirAge::updateScanningStatus(QString current_path)
 {
     if (m_scanner != nullptr) {
         if (current_path.isEmpty()) {
-            ui->statusbar->showMessage(tr("scanning %1").arg(m_scanner->path()));
+            ui->statusbar->showMessage(tr("Scanning %1").arg(m_scanner->path()));
         } else {
-            ui->statusbar->showMessage(tr("scanning %2").arg(current_path));
+            ui->statusbar->showMessage(tr("Scanning %2").arg(current_path));
         }
     } else {
         ui->statusbar->showMessage(tr("Ready."));

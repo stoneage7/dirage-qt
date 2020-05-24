@@ -105,6 +105,20 @@ Datapoint::ValueType ScalarImpl::sumValues(BinConstIter from, BinConstIter to)
     return sum;
 }
 
+std::pair<Datapoint::ValueType, Datapoint::ValueType>
+ScalarImpl::largestValueAndSum(BinConstIter from, BinConstIter to)
+{
+    Datapoint::ValueType max = 0;
+    Datapoint::ValueType sum = 0;
+    for (; from != to; from++) {
+        if (max < (*from)) {
+            max = (*from);
+        }
+        sum += (*from);
+    }
+    return std::pair<qint64, qint64>(max, sum);
+}
+
 ScalarImpl::~ScalarImpl() { }
 
 } // namespace histogram

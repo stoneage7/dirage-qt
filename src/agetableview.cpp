@@ -26,12 +26,16 @@ QString ByteSizeDelegate::byteSizetoString(qint64 bytes)
     return QStringLiteral("%1 %2").arg(bytesF, 0, 'f', 2).arg(units[i]);
 }
 
-qint64 AgeTableView::largestBinSizeInView(AgeModel *model)
+void AgeTableView::updateLargestAndSum(AgeModel *model)
 {
     // have AgeModel as parameter to avoid downcasting multiple times
     const int firstBin = m_histogramDelegate.firstVisibleBin();
     const int lastBin = firstBin + m_histogramDelegate.numVisibleBins() - 1;
-    return model->largestBinSize(firstBin, lastBin);
+    //m_histogramDelegate.setLargestBinInView()
+
+    std::pair<qint64, qint64> p = model->largestBinAndSum(firstBin, lastBin);
+    m_histogramDelegate.setLargestBinInView(p.first);
+    m_sumValuesInView = p.second;
 }
 
 void AgeTableView::updateLabels(AgeModel *model)
@@ -49,6 +53,12 @@ void AgeTableView::updateLabels(AgeModel *model)
         emit setMinLabel(QString());
         emit setMaxLabel(QString());
     }
+
+    QString totalSizeText(ByteSizeDelegate::byteSizetoString(model->totalSize()));
+    QString sizeInViewText(ByteSizeDelegate::byteSizetoString(m_sumValuesInView));
+    QString rowHeightText(ByteSizeDelegate::byteSizetoString(m_histogramDelegate.largestBinInView()));
+    emit setTotalSizeLabel(tr("Total Size: %1 (%2 in view), Row Height = %3")
+                           .arg(totalSizeText).arg(sizeInViewText).arg(rowHeightText));
 }
 
 void AgeTableView::mouseDoubleClickEvent(QMouseEvent *event)
@@ -65,6 +75,7 @@ void AgeTableView::mouseDoubleClickEvent(QMouseEvent *event)
 AgeTableView::AgeTableView(QWidget *parent)
     :QTableView(parent)
     ,m_histogramDelegate(this)
+    ,m_sumValuesInView(0)
 {
     m_histogramDelegate.setNumVisibleBins(DEFAULT_VISIBLE_BINS);
     this->setSortingEnabled(true);
@@ -74,7 +85,7 @@ void AgeTableView::connectScollBar(QScrollBar *sb)
 {
     AgeModel *am = qobject_cast<AgeModel*>(this->model());
     if (am != nullptr) {
-        m_histogramDelegate.setLargestBinInView(this->largestBinSizeInView(am));
+        this->updateLargestAndSum(am);
         sb->setRange(0, am->numBins());
         connect(this, &AgeTableView::setScrollMax, sb, &QScrollBar::setMaximum);
         connect(sb, &QScrollBar::valueChanged, this, &AgeTableView::histogramScroll);
@@ -91,10 +102,11 @@ void AgeTableView::connectZoomSlider(QSlider *zoomSlider)
     }
 }
 
-void AgeTableView::connectLabels(QLabel *minTsLabel, QLabel *maxTsLabel)
+void AgeTableView::connectLabels(QLabel *minTsLabel, QLabel *maxTsLabel, QLabel *totalSizeLabel)
 {
     connect(this, &AgeTableView::setMinLabel, minTsLabel, &QLabel::setText);
     connect(this, &AgeTableView::setMaxLabel, maxTsLabel, &QLabel::setText);
+    connect(this, &AgeTableView::setTotalSizeLabel, totalSizeLabel, &QLabel::setText);
 }
 
 void AgeTableView::connectGridlinesToggle(QCheckBox *checkBox)
@@ -108,7 +120,7 @@ void AgeTableView::numBinsChanged(int newNumBins)
     emit setZoomRange(MIN_VISIBLE_BINS, newNumBins);
     AgeModel *am = qobject_cast<AgeModel*>(this->model());
     if (am != nullptr) {
-        m_histogramDelegate.setLargestBinInView(this->largestBinSizeInView(am));
+        this->updateLargestAndSum(am);
         this->updateLabels(am);
     }
     this->viewport()->update();
@@ -119,7 +131,7 @@ void AgeTableView::histogramScroll(int newScrollValue)
     AgeModel *am = qobject_cast<AgeModel*>(this->model());
     if (am != nullptr && newScrollValue < am->numBins()) {
         m_histogramDelegate.setFirstVisibleBin(newScrollValue);
-        m_histogramDelegate.setLargestBinInView(this->largestBinSizeInView(am));
+        this->updateLargestAndSum(am);
         this->updateLabels(am);
     }
     this->viewport()->update();
@@ -130,7 +142,7 @@ void AgeTableView::histogramZoom(int newZoomValue)
     AgeModel *am = qobject_cast<AgeModel*>(this->model());
     if (am != nullptr && newZoomValue >= 0 && newZoomValue <= am->numBins()) {
         m_histogramDelegate.setNumVisibleBins(newZoomValue);
-        m_histogramDelegate.setLargestBinInView(this->largestBinSizeInView(am));
+        this->updateLargestAndSum(am);
         this->updateLabels(am);
     }
     this->viewport()->update();
@@ -163,7 +175,7 @@ void AgeTableView::rowsInserted(const QModelIndex &parent, int start, int end)
     if (!parent.isValid()) {
         AgeModel *am = qobject_cast<AgeModel*>(this->model());
         if (am != nullptr) {
-            m_histogramDelegate.setLargestBinInView(this->largestBinSizeInView(am));
+            this->updateLargestAndSum(am);
             this->updateLabels(am);
         }
     }

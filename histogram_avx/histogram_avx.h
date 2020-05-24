@@ -23,14 +23,18 @@ protected:
 public:
     virtual void make(VecIter begin, VecIter end,
                       Datapoint::KeyType minKey, Datapoint::KeyType maxKey,
-                      BinIter binBegin, BinIter binEnd);
+                      BinIter binBegin, BinIter binEnd) override;
 
     virtual Datapoint::ValueType
-    largestValue(BinConstIter from, BinConstIter to);
+    largestValue(BinConstIter from, BinConstIter to) override;
 
     virtual Datapoint::ValueType
-    sumValues(BinConstIter from, BinConstIter to);
-    virtual ~AVX2Impl();
+    sumValues(BinConstIter from, BinConstIter to) override;
+
+    virtual std::pair<Datapoint::ValueType, Datapoint::ValueType>
+    largestValueAndSum(BinConstIter from, BinConstIter to) override;
+
+    virtual ~AVX2Impl() override;
 };
 
 } // namespace histogram

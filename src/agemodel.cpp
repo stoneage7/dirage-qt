@@ -7,6 +7,7 @@ const int NUM_BUCKETS_DEFAULT = 50;
 AgeModel::AgeModel(QObject *parent)
     :QAbstractTableModel(parent)
     ,m_numBins(NUM_BUCKETS_DEFAULT)
+    ,m_totalSize(0)
 {
 }
 
@@ -151,6 +152,26 @@ std::pair<qint64, qint64> AgeModel::binRange(int binIndex) const
                                              this->numBins(), binIndex);
 }
 
+std::pair<qint64, qint64> AgeModel::largestBinAndSum(int fromIndex, int toIndex) const
+{
+    Q_ASSERT(fromIndex >= 0 && toIndex >= 0);
+    qint64 largestBin = 0;
+    qint64 sum = 0;
+    for (auto i = m_rows.cbegin(); i != m_rows.cend(); ++i) {
+        auto &bins = (*i).histogram.bins();
+        if (bins.length() > 0) {
+            int tmpFrom = qMin(fromIndex, bins.length()-1);
+            int tmpTo = qMin(toIndex, bins.length()-1);
+            std::pair<qint64, qint64> s = (*i).histogram.largestBinAndSum(tmpFrom, tmpTo);
+            if (largestBin < s.first) {
+                largestBin = s.first;
+            }
+            sum += s.second;
+        }
+    }
+    return std::pair<qint64, qint64> (largestBin, sum);
+}
+
 // TODO implement CHANGE
 void AgeModel::insertOrChangeAge(QString name, AgeVector vector)
 {
@@ -164,6 +185,7 @@ void AgeModel::insertOrChangeAge(QString name, AgeVector vector)
     it.histogram = this->makeHistogram(vector);
     this->beginInsertRows(QModelIndex(), m_rows.count(), m_rows.count());
     m_rows.append(it);
+    m_totalSize += it.histogram.sumBins();
     this->endInsertRows();
 }
 
@@ -183,5 +205,6 @@ void AgeModel::clear()
     m_rows.clear();
     m_minModelTimestamp.clear();
     m_maxModelTimestamp.clear();
+    m_totalSize = 0;
     this->endRemoveRows();
 }

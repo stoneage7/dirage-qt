@@ -26,7 +26,8 @@ class AgeTableView : public QTableView
 private:
     AgeItemDelegate m_histogramDelegate;
     ByteSizeDelegate m_byteSizeDelegate;
-    qint64 largestBinSizeInView(AgeModel *model);
+    qint64 m_sumValuesInView;
+    void updateLargestAndSum(AgeModel *model);
     void updateLabels(AgeModel *model);
 
 protected:
@@ -37,7 +38,7 @@ public:
     virtual ~AgeTableView () override { }
     void connectScollBar(QScrollBar *sb);
     void connectZoomSlider(QSlider *zoomSlider);
-    void connectLabels(QLabel *minTsLabel, QLabel *maxTsLabel);
+    void connectLabels(QLabel *minTsLabel, QLabel *maxTsLabel, QLabel *totalSizeLabel);
     void connectGridlinesToggle(QCheckBox *checkBox);
 
 signals:
@@ -45,6 +46,7 @@ signals:
     void setZoomRange(int newMin, int newMax);
     void setMinLabel(QString newText);
     void setMaxLabel(QString newText);
+    void setTotalSizeLabel(QString newText);
     void doubleClickedName(QString name);
     void clickedEmptyTable();
 

@@ -207,8 +207,8 @@ Datapoint::ValueType AVX2Impl::largestValue(BinConstIter from, BinConstIter to)
     __m256i_u maxU;
     _mm256_storeu_si256(&maxU, maxBins);
     for (int i = 0; i < 4; i++) {
-        if (max < maxBins[i]) {
-            max = maxBins[i];
+        if (max < maxU[i]) {
+            max = maxU[i];
         }
     }
     if (from < to) {
@@ -235,7 +235,7 @@ Datapoint::ValueType AVX2Impl::sumValues(BinConstIter from, BinConstIter to)
     _mm256_storeu_si256(&accU, acc);
     Datapoint::ValueType sum = 0;
     for (int i = 0; i < 4; i++) {
-        sum += acc[i];
+        sum += accU[i];
     }
 
     if (from < to) {
@@ -243,6 +243,45 @@ Datapoint::ValueType AVX2Impl::sumValues(BinConstIter from, BinConstIter to)
     }
 
     return sum;
+}
+
+std::pair<Datapoint::ValueType, Datapoint::ValueType>
+AVX2Impl::largestValueAndSum(BinConstIter from, BinConstIter to)
+{
+    static_assert(sizeof(*from) == 8 && std::is_pointer<BinIter>::value,
+                  "AVX2Impl::largestValueAndSum() - 64bit ints only");
+    __m256i maxBins = _mm256_set1_epi64x(0);
+    __m256i sumBins = _mm256_set1_epi64x(0);
+    while (to - from > 4) {
+        const __m256i_u *binsPtr = iter_to_pointer_type<BinConstIter, __m256i_u>(from);
+        const __m256i bins = _mm256_loadu_si256(binsPtr);
+        const __m256i cmpgt = _mm256_cmpgt_epi64(bins, maxBins);
+        maxBins = _mm256_or_si256(_mm256_andnot_si256(cmpgt, maxBins),
+                                  _mm256_and_si256(bins, cmpgt));
+        sumBins = _mm256_add_epi64(sumBins, bins);
+        std::advance(from, 4);
+    }
+
+    Datapoint::ValueType max = 0;
+    Datapoint::ValueType sum = 0;
+    __m256i_u maxU;
+    __m256i_u sumU;
+    _mm256_storeu_si256(&maxU, maxBins);
+    _mm256_storeu_si256(&sumU, sumBins);
+    for (int i = 0; i < 4; i++) {
+        if (max < maxU[i]) {
+            max = maxU[i];
+        }
+        sum += sumU[i];
+    }
+    if (from < to) {
+        std::pair<qint64, qint64> rest = ScalarImpl::largestValueAndSum(from, to);
+        if (max < rest.first) {
+            max = rest.first;
+        }
+        sum += rest.second;
+    }
+    return std::pair<qint64, qint64>(max, sum);
 }
 
 AVX2Impl::~AVX2Impl()

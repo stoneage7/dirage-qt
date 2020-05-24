@@ -21,6 +21,7 @@ public:
 
     int numVisibleBins() const { return m_numVisibleBins; }
     int firstVisibleBin() const { return m_firstVisibleBin; }
+    qint64 largestBinInView() const { return m_largestBinInView; }
 
 public slots:
     void setLargestBinInView(qint64 newLargestBin) { m_largestBinInView = newLargestBin; }

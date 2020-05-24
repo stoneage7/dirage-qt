@@ -32,6 +32,9 @@ public:
     virtual Datapoint::ValueType
     sumValues(BinConstIter from, BinConstIter to) = 0;
 
+    virtual std::pair<Datapoint::ValueType, Datapoint::ValueType>
+    largestValueAndSum(BinConstIter from, BinConstIter to) = 0;
+
     virtual ~Impl();
 };
 
@@ -60,6 +63,9 @@ public:
 
     virtual Datapoint::ValueType
     sumValues(BinConstIter from, BinConstIter to) override;
+
+    virtual std::pair<Datapoint::ValueType, Datapoint::ValueType>
+    largestValueAndSum(BinConstIter from, BinConstIter to) override;
 
     virtual ~ScalarImpl() override;
 

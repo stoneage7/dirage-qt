@@ -57,6 +57,7 @@ public:
     qint64 largestBinSize() const;
     qint64 largestBinSize(int fromIndex, int toIndex) const;
     qint64 sumBins() const { return m_totalSize; }
+    std::pair<qint64, qint64> largestBinAndSum(int fromIndex, int toIndex) const;
 
 };
 Q_DECLARE_METATYPE(AgeHistogram);

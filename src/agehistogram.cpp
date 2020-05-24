@@ -53,3 +53,11 @@ qint64 AgeHistogram::largestBinSize(int fromIndex, int toIndex) const
     return platform::histogramImpl->largestValue(m_bins.cbegin()+fromIndex,
                                                  m_bins.cbegin()+toIndex+1);
 }
+
+std::pair<qint64, qint64> AgeHistogram::largestBinAndSum(int fromIndex, int toIndex) const
+{
+    Q_ASSERT(fromIndex >= 0 && toIndex >= 0 &&
+             fromIndex < m_bins.length() && toIndex < m_bins.length());
+    return platform::histogramImpl->largestValueAndSum(m_bins.cbegin()+fromIndex,
+                                                       m_bins.cbegin()+toIndex+1);
+}

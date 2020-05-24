@@ -30,6 +30,7 @@ private:
     int m_numBins;
     TimestampOption m_minModelTimestamp;
     TimestampOption m_maxModelTimestamp;
+    qint64 m_totalSize;
 
     void checkExpandMinMaxTimestamps(qint64 newMinTs, qint64 newMaxTs);
     AgeHistogram makeHistogram(const AgeVector &vector);
@@ -48,6 +49,8 @@ public:
     qint64 maxTimestamp() const { return m_maxModelTimestamp.get(); }
     bool timestampsAreValid() const { return m_minModelTimestamp.isValid() && m_maxModelTimestamp.isValid(); }
     std::pair<qint64, qint64> binRange(int binIndex) const;
+    qint64 totalSize() const { return m_totalSize; }
+    std::pair<qint64, qint64> largestBinAndSum(int fromIndex, int toIndex) const;
 
 signals:
     void minMaxTimestampChanged(qint64 min_ts, qint64 max_ts);

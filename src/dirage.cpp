@@ -18,6 +18,7 @@ DirAge::DirAge(QWidget *parent)
     ui->statsTable->connectGridlinesToggle(ui->gridLinesToggle);
     connect(ui->statsTable, &AgeTableView::doubleClickedName, this, &DirAge::runScan);
     connect(ui->statsTable, &AgeTableView::clickedEmptyTable, this, &DirAge::openDirDialog);
+    ui->statsTable->sortByColumn(AgeModel::COLUMN_NAME, Qt::AscendingOrder);
     connect(ui->numBinsSlider, &QAbstractSlider::valueChanged, &m_ageModel, &AgeModel::setNumBins);
     connect(ui->upDirButton, &QPushButton::clicked, this, &DirAge::upDir);
     ui->currentDirLabel->clear();
@@ -106,7 +107,12 @@ void DirAge::stopScanner()
     } else {
         this->setWindowTitle(tr("DirAge"));
     }
-    ui->statsTable->setSortingEnabled(true);
+    if (ui->statsTable->horizontalHeader()->isSortIndicatorShown()) {
+        int previousSort = ui->statsTable->horizontalHeader()->sortIndicatorSection();
+        Qt::SortOrder previousOrder = ui->statsTable->horizontalHeader()->sortIndicatorOrder();
+        ui->statsTable->sortByColumn(-1, Qt::AscendingOrder);
+        ui->statsTable->sortByColumn(previousSort, previousOrder);
+    }
 }
 
 void DirAge::updateScanningStatus(QString current_path)

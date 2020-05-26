@@ -79,8 +79,8 @@ void DirAge::runScan(QString path)
     m_ageModel.clear();
     qInfo() << "scanning" << path;
     m_scanner = new SubdirsScanner(path);
-    connect(m_scanner, &SubdirsScanner::haveSubDir, &m_ageModel, &AgeModel::insertOrChangeAge);
-    connect(m_scanner, &SubdirsScanner::haveRootDir, &m_ageModel, &AgeModel::insertOrChangeAge);
+    connect(m_scanner, &SubdirsScanner::haveSubDir, &m_ageModel, &AgeModel::appendSubdir);
+    connect(m_scanner, &SubdirsScanner::haveRootDir, &m_ageModel, &AgeModel::appendTopLevel);
     connect(m_scanner, &QThread::finished, this, &DirAge::stopScanner);
     m_scanner->start();
     m_scannerPing.reset(new QTimer());

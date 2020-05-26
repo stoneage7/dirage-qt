@@ -30,6 +30,22 @@ void AgeModel::checkExpandMinMaxTimestamps(qint64 newMinTs, qint64 newMaxTs)
     }
 }
 
+void AgeModel::appendRowFromVector(QString name, QString label, AgeVector vector)
+{
+    if (!vector.datapoints().isEmpty()) {
+        this->checkExpandMinMaxTimestamps(vector.minTimestamp(), vector.maxTimestamp());
+    }
+    AgeModelRow it;
+    it.name = name;
+    it.label = label;
+    it.vector = vector;
+    it.histogram = this->makeHistogram(vector);
+    this->beginInsertRows(QModelIndex(), m_rows.count(), m_rows.count());
+    m_rows.append(it);
+    m_totalSize += it.histogram.sumBins();
+    this->endInsertRows();
+}
+
 AgeHistogram AgeModel::makeHistogram(const AgeVector &vector)
 {
     if (vector.datapoints().isEmpty()) {
@@ -154,21 +170,14 @@ std::pair<qint64, qint64> AgeModel::largestBinAndSum(int fromIndex, int toIndex)
     return std::pair<qint64, qint64> (largestBin, sum);
 }
 
-// TODO implement CHANGE
-void AgeModel::insertOrChangeAge(QString name, AgeVector vector)
+void AgeModel::appendSubdir(QString name, AgeVector vector)
 {
-    if (!vector.datapoints().isEmpty()) {
-        this->checkExpandMinMaxTimestamps(vector.minTimestamp(), vector.maxTimestamp());
-    }
-    AgeModelRow it;
-    it.name = name;
-    it.label = QDir(name).dirName();
-    it.vector = vector;
-    it.histogram = this->makeHistogram(vector);
-    this->beginInsertRows(QModelIndex(), m_rows.count(), m_rows.count());
-    m_rows.append(it);
-    m_totalSize += it.histogram.sumBins();
-    this->endInsertRows();
+    this->appendRowFromVector(name, QDir(name).dirName(), vector);
+}
+
+void AgeModel::appendTopLevel(QString name, AgeVector vector)
+{
+    this->appendRowFromVector(name, QStringLiteral("./"), vector);
 }
 
 void AgeModel::setNumBins(int newNumBins)

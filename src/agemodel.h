@@ -33,6 +33,7 @@ private:
     qint64 m_totalSize;
 
     void checkExpandMinMaxTimestamps(qint64 newMinTs, qint64 newMaxTs);
+    void appendRowFromVector(QString name, QString label, AgeVector vector);
     AgeHistogram makeHistogram(const AgeVector &vector);
     void rebuildHistograms();
 
@@ -56,7 +57,8 @@ signals:
     void numBinsChanged(int newNumBins);
 
 public slots:
-    void insertOrChangeAge(QString name, AgeVector vector);
+    void appendSubdir(QString name, AgeVector vector);
+    void appendTopLevel(QString name, AgeVector vector);
     void setNumBins(int newNumBins);
     void clear();
 };

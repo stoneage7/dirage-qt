@@ -117,10 +117,10 @@ inline Datapoint::ValueType AVX2Impl::accumulateBin(VecIter &begin,  VecIter end
 
         __m256i testGt = _mm256_cmpgt_epi64(keys, maxKeys);
 
-        // add vals where key<=maxKey
-        acc = _mm256_add_epi64(acc, _mm256_andnot_si256(testGt, vals));
-
         if (!_mm256_testz_si256(testGt, testGt)) {
+        // add vals where key<=maxKey
+            acc = _mm256_add_epi64(acc, _mm256_andnot_si256(testGt, vals));
+
             // at least one key>maxKey
             // permute 11011000 = 0xD8
             // reg1=[k1 k2 k3 k4] <- across lanes k2 k3
@@ -139,15 +139,15 @@ inline Datapoint::ValueType AVX2Impl::accumulateBin(VecIter &begin,  VecIter end
                 std::advance(begin, 4);
                 break;
             }
+        } else {
+            acc = _mm256_add_epi64(acc, vals);
         }
     }
 
     Datapoint::ValueType binSize = 0;
     if (begin > oldBegin) {
-        __m256i_u unload;
-        _mm256_storeu_si256(&unload, acc);
         for (int i = 0; i < 4; i++) {
-            binSize += unload[i];
+            binSize += acc[i];
         }
     }
     if (begin < end) {
@@ -166,14 +166,12 @@ inline void AVX2Impl::makeImpl(VecIter begin, VecIter end,
     __m256 binIndex = _mm256_setr_ps(1.0, 2.0, 3.0, 4.0, 5.0, 6.0, 7.0, 8.0);
     for (int binI = 0; binI < numBins; binI += 8) {
         __m256 part = _mm256_mul_ps(binIndex, binRange);
-        float partU[8];
-        _mm256_storeu_ps(partU, part);
         for (int binJ = 0; binJ < 8 && binI + binJ < numBins; binJ++) {
             Datapoint::KeyType binMaxKey;
             if (binI + binJ == numBins - 1) {
                 binMaxKey = maxKey;
             } else {
-                binMaxKey = minKey + static_cast<Datapoint::KeyType>(partU[binJ]);
+                binMaxKey = minKey + static_cast<Datapoint::KeyType>(part[binJ]);
             }
             *(binBegin + binI + binJ) = AVX2Impl::accumulateBin(begin, end, binMaxKey);
         }
@@ -200,11 +198,9 @@ Datapoint::ValueType AVX2Impl::sumValues(BinConstIter from, BinConstIter to)
         std::advance(from, 4);
     }
 
-    __m256i_u accU;
-    _mm256_storeu_si256(&accU, acc);
     Datapoint::ValueType sum = 0;
     for (int i = 0; i < 4; i++) {
-        sum += accU[i];
+        sum += acc[i];
     }
 
     if (from < to) {
@@ -233,15 +229,11 @@ AVX2Impl::largestValueAndSum(BinConstIter from, BinConstIter to)
 
     Datapoint::ValueType max = 0;
     Datapoint::ValueType sum = 0;
-    __m256i_u maxU;
-    __m256i_u sumU;
-    _mm256_storeu_si256(&maxU, maxBins);
-    _mm256_storeu_si256(&sumU, sumBins);
     for (int i = 0; i < 4; i++) {
-        if (max < maxU[i]) {
-            max = maxU[i];
+        if (max < maxBins[i]) {
+            max = maxBins[i];
         }
-        sum += sumU[i];
+        sum += sumBins[i];
     }
     if (from < to) {
         std::pair<qint64, qint64> rest = ScalarImpl::largestValueAndSum(from, to);

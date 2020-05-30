@@ -1,0 +1,6 @@
+- UI kind of sucks
+  - encode file types using colors (like windirstat)
+  - prettier charts
+  - better controls (zoom/pan) - mb animations
+- use qstatemachine to switch between states? - app open states -> scanning -> finished / canceled -> etc...
+- scanner spends most of time encoding strings between utf-16 (QString) and const char* (lstat) - in general getting file names from QDirIterator
